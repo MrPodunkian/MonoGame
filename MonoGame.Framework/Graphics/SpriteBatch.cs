@@ -32,6 +32,20 @@ namespace Microsoft.Xna.Framework.Graphics
         #endregion
 
         /// <summary>
+        /// The amount of texels to tuck in the texture in order to avoid artifacts.
+        /// </summary>
+        public static float TextureTuckAmount = 0.0F;
+
+        private void _TuckTextureCoordinates(Texture2D texture, ref Vector2 tl, ref Vector2 br)
+        {
+            tl.X += TextureTuckAmount * texture.TexelWidth;
+            br.X -= TextureTuckAmount * texture.TexelWidth;
+
+            tl.Y += TextureTuckAmount * texture.TexelHeight;
+            br.Y -= TextureTuckAmount * texture.TexelHeight;
+        }
+
+        /// <summary>
         /// Constructs a <see cref="SpriteBatch"/>.
         /// </summary>
         /// <param name="graphicsDevice">The <see cref="GraphicsDevice"/>, which will be used for sprite rendering.</param>        
@@ -228,7 +242,10 @@ namespace Microsoft.Xna.Framework.Graphics
                 _texCoordTL = Vector2.Zero;
                 _texCoordBR = Vector2.One;
             }
-            
+
+            // Tuck in texture coordinates to avoid artifacts.
+            _TuckTextureCoordinates(texture, ref _texCoordTL, ref _texCoordBR);
+
             if ((effects & SpriteEffects.FlipVertically) != 0)
             {
                 var temp = _texCoordBR.Y;
@@ -366,6 +383,9 @@ namespace Microsoft.Xna.Framework.Graphics
                 origin.Y = origin.Y * (float)destinationRectangle.Height * texture.TexelHeight;
             }
             
+            // Tuck in texture coordinates to avoid artifacts.
+            _TuckTextureCoordinates(texture, ref _texCoordTL, ref _texCoordBR);
+
 			if ((effects & SpriteEffects.FlipVertically) != 0)
             {
                 var temp = _texCoordBR.Y;
@@ -453,6 +473,9 @@ namespace Microsoft.Xna.Framework.Graphics
                 _texCoordBR = Vector2.One;
             }
 
+            // Tuck in texture coordinates to avoid artifacts.
+            _TuckTextureCoordinates(texture, ref _texCoordTL, ref _texCoordBR);
+
             item.Set(position.X,
                      position.Y,
                      size.X,
@@ -495,6 +518,9 @@ namespace Microsoft.Xna.Framework.Graphics
                 _texCoordTL = Vector2.Zero;
                 _texCoordBR = Vector2.One;
             }
+
+            // Tuck in texture coordinates to avoid artifacts.
+            _TuckTextureCoordinates(texture, ref _texCoordTL, ref _texCoordBR);
 
             item.Set(destinationRectangle.X,
                      destinationRectangle.Y,
@@ -625,6 +651,9 @@ namespace Microsoft.Xna.Framework.Graphics
                 _texCoordTL.Y = pCurrentGlyph->BoundsInTexture.Y * spriteFont.Texture.TexelHeight;
                 _texCoordBR.X = (pCurrentGlyph->BoundsInTexture.X + pCurrentGlyph->BoundsInTexture.Width) * spriteFont.Texture.TexelWidth;
                 _texCoordBR.Y = (pCurrentGlyph->BoundsInTexture.Y + pCurrentGlyph->BoundsInTexture.Height) * spriteFont.Texture.TexelHeight;
+
+                // Tuck in texture coordinates to avoid artifacts.
+                _TuckTextureCoordinates(spriteFont.Texture, ref _texCoordTL, ref _texCoordBR);
 
                 item.Set(p.X,
                          p.Y,
@@ -799,7 +828,10 @@ namespace Microsoft.Xna.Framework.Graphics
                 _texCoordTL.Y = pCurrentGlyph->BoundsInTexture.Y * spriteFont.Texture.TexelHeight;
                 _texCoordBR.X = (pCurrentGlyph->BoundsInTexture.X + pCurrentGlyph->BoundsInTexture.Width) * spriteFont.Texture.TexelWidth;
                 _texCoordBR.Y = (pCurrentGlyph->BoundsInTexture.Y + pCurrentGlyph->BoundsInTexture.Height) * spriteFont.Texture.TexelHeight;
-                            
+
+                // Tuck in texture coordinates to avoid artifacts.
+                _TuckTextureCoordinates(spriteFont.Texture, ref _texCoordTL, ref _texCoordBR);
+
                 if ((effects & SpriteEffects.FlipVertically) != 0)
                 {
                     var temp = _texCoordBR.Y;
@@ -908,6 +940,9 @@ namespace Microsoft.Xna.Framework.Graphics
                 _texCoordTL.Y = pCurrentGlyph->BoundsInTexture.Y * spriteFont.Texture.TexelHeight;
                 _texCoordBR.X = (pCurrentGlyph->BoundsInTexture.X + pCurrentGlyph->BoundsInTexture.Width) * spriteFont.Texture.TexelWidth;
                 _texCoordBR.Y = (pCurrentGlyph->BoundsInTexture.Y + pCurrentGlyph->BoundsInTexture.Height) * spriteFont.Texture.TexelHeight;
+
+                // Tuck in texture coordinates to avoid artifacts.
+                _TuckTextureCoordinates(spriteFont.Texture, ref _texCoordTL, ref _texCoordBR);
 
                 item.Set(p.X,
                          p.Y,
@@ -1081,7 +1116,10 @@ namespace Microsoft.Xna.Framework.Graphics
                 _texCoordTL.Y = pCurrentGlyph->BoundsInTexture.Y * (float)spriteFont.Texture.TexelHeight;
                 _texCoordBR.X = (pCurrentGlyph->BoundsInTexture.X + pCurrentGlyph->BoundsInTexture.Width) * (float)spriteFont.Texture.TexelWidth;
                 _texCoordBR.Y = (pCurrentGlyph->BoundsInTexture.Y + pCurrentGlyph->BoundsInTexture.Height) * (float)spriteFont.Texture.TexelHeight;
-                            
+
+                // Tuck in texture coordinates to avoid artifacts.
+                _TuckTextureCoordinates(spriteFont.Texture, ref _texCoordTL, ref _texCoordBR);
+
                 if ((effects & SpriteEffects.FlipVertically) != 0)
                 {
                     var temp = _texCoordBR.Y;
