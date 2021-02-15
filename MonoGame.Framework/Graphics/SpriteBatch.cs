@@ -198,7 +198,8 @@ namespace Microsoft.Xna.Framework.Graphics
 				Vector2 origin,
 				Vector2 scale,
 				SpriteEffects effects,
-                float layerDepth)
+                float layerDepth,
+                Matrix? transformMatrix = null)
 		{
             CheckValid(texture);
 
@@ -268,7 +269,8 @@ namespace Microsoft.Xna.Framework.Graphics
                         color,
                         _texCoordTL,
                         _texCoordBR,
-                        layerDepth);
+                        layerDepth,
+                        transformMatrix);
             }
             else
             {
@@ -283,7 +285,8 @@ namespace Microsoft.Xna.Framework.Graphics
                         color,
                         _texCoordTL,
                         _texCoordBR,
-                        layerDepth);
+                        layerDepth,
+                        transformMatrix);
             }
             
             FlushIfNeeded();
@@ -309,10 +312,11 @@ namespace Microsoft.Xna.Framework.Graphics
 				Vector2 origin,
 				float scale,
 				SpriteEffects effects,
-                float layerDepth)
+                float layerDepth,
+                Matrix? transformMatrix = null)
 		{
             var scaleVec = new Vector2(scale, scale);
-            Draw(texture, position, sourceRectangle, color, rotation, origin, scaleVec, effects, layerDepth);
+            Draw(texture, position, sourceRectangle, color, rotation, origin, scaleVec, effects, layerDepth, transformMatrix);
 		}
 
         /// <summary>
@@ -333,7 +337,8 @@ namespace Microsoft.Xna.Framework.Graphics
 			float rotation,
 			Vector2 origin,
 			SpriteEffects effects,
-            float layerDepth)
+            float layerDepth,
+            Matrix? transformMatrix = null)
 		{
             CheckValid(texture);
             
@@ -408,7 +413,8 @@ namespace Microsoft.Xna.Framework.Graphics
                         color,
                         _texCoordTL,
                         _texCoordBR,
-                        layerDepth);
+                        layerDepth,
+                        transformMatrix);
             }
             else
 		    {
@@ -423,7 +429,8 @@ namespace Microsoft.Xna.Framework.Graphics
                         color,
                         _texCoordTL,
                         _texCoordBR,
-                        layerDepth);
+                        layerDepth,
+                        transformMatrix);
             }
 
 			FlushIfNeeded();
@@ -445,7 +452,7 @@ namespace Microsoft.Xna.Framework.Graphics
         /// <param name="position">The drawing location on screen.</param>
         /// <param name="sourceRectangle">An optional region on the texture which will be rendered. If null - draws full texture.</param>
         /// <param name="color">A color mask.</param>
-		public void Draw (Texture2D texture, Vector2 position, Rectangle? sourceRectangle, Color color)
+		public void Draw (Texture2D texture, Vector2 position, Rectangle? sourceRectangle, Color color, Matrix? transformMatrix = null)
 		{
 			CheckValid(texture);
             
@@ -483,7 +490,8 @@ namespace Microsoft.Xna.Framework.Graphics
                      color,
                      _texCoordTL,
                      _texCoordBR,
-                     0);
+                     0,
+                     transformMatrix);
 
             FlushIfNeeded();
 		}
@@ -495,7 +503,7 @@ namespace Microsoft.Xna.Framework.Graphics
         /// <param name="destinationRectangle">The drawing bounds on screen.</param>
         /// <param name="sourceRectangle">An optional region on the texture which will be rendered. If null - draws full texture.</param>
         /// <param name="color">A color mask.</param>
-		public void Draw (Texture2D texture, Rectangle destinationRectangle, Rectangle? sourceRectangle, Color color)
+		public void Draw (Texture2D texture, Rectangle destinationRectangle, Rectangle? sourceRectangle, Color color, Matrix? transformMatrix = null)
 		{
             CheckValid(texture);
             
@@ -529,7 +537,8 @@ namespace Microsoft.Xna.Framework.Graphics
                      color,
                      _texCoordTL,
                      _texCoordBR,
-                     0);
+                     0,
+                     transformMatrix);
             
             FlushIfNeeded();
 		}
@@ -540,7 +549,7 @@ namespace Microsoft.Xna.Framework.Graphics
         /// <param name="texture">A texture.</param>
         /// <param name="position">The drawing location on screen.</param>
         /// <param name="color">A color mask.</param>
-		public void Draw (Texture2D texture, Vector2 position, Color color)
+		public void Draw (Texture2D texture, Vector2 position, Color color, Matrix? transformMatrix = null)
 		{
 			CheckValid(texture);
             
@@ -557,7 +566,8 @@ namespace Microsoft.Xna.Framework.Graphics
                      color,
                      Vector2.Zero,
                      Vector2.One,
-                     0);
+                     0,
+                     transformMatrix);
 
             FlushIfNeeded();
 		}
@@ -568,7 +578,7 @@ namespace Microsoft.Xna.Framework.Graphics
         /// <param name="texture">A texture.</param>
         /// <param name="destinationRectangle">The drawing bounds on screen.</param>
         /// <param name="color">A color mask.</param>
-        public void Draw(Texture2D texture, Rectangle destinationRectangle, Color color)
+        public void Draw(Texture2D texture, Rectangle destinationRectangle, Color color, Matrix? transformMatrix = null)
 		{
             CheckValid(texture);
             
@@ -585,7 +595,8 @@ namespace Microsoft.Xna.Framework.Graphics
                      color,
                      Vector2.Zero,
                      Vector2.One,
-                     0);
+                     0,
+                     transformMatrix);
             
             FlushIfNeeded();
 		}
@@ -597,7 +608,7 @@ namespace Microsoft.Xna.Framework.Graphics
         /// <param name="text">The text which will be drawn.</param>
         /// <param name="position">The drawing location on screen.</param>
         /// <param name="color">A color mask.</param>
-		public unsafe void DrawString (SpriteFont spriteFont, string text, Vector2 position, Color color)
+		public unsafe void DrawString (SpriteFont spriteFont, string text, Vector2 position, Color color, Matrix? transformMatrix = null)
 		{
             CheckValid(spriteFont, text);
             
@@ -662,7 +673,8 @@ namespace Microsoft.Xna.Framework.Graphics
                          color,
                          _texCoordTL,
                          _texCoordBR,
-                         0);
+                         0,
+                         transformMatrix);
                 
                 offset.X += pCurrentGlyph->Width + pCurrentGlyph->RightSideBearing;
             }
@@ -705,7 +717,7 @@ namespace Microsoft.Xna.Framework.Graphics
         /// <param name="layerDepth">A depth of the layer of this string.</param>
 		public unsafe void DrawString (
 			SpriteFont spriteFont, string text, Vector2 position, Color color,
-            float rotation, Vector2 origin, Vector2 scale, SpriteEffects effects, float layerDepth)
+            float rotation, Vector2 origin, Vector2 scale, SpriteEffects effects, float layerDepth, Matrix? transformMatrix = null)
 		{
             CheckValid(spriteFont, text);
             
@@ -854,7 +866,8 @@ namespace Microsoft.Xna.Framework.Graphics
                             color,
                             _texCoordTL,
                             _texCoordBR,
-                            layerDepth);
+                            layerDepth,
+                            transformMatrix);
                 }
                 else
                 {
@@ -869,7 +882,8 @@ namespace Microsoft.Xna.Framework.Graphics
                             color,
                             _texCoordTL,
                             _texCoordBR,
-                            layerDepth);
+                            layerDepth,
+                            transformMatrix);
                 }
                 
                 offset.X += pCurrentGlyph->Width + pCurrentGlyph->RightSideBearing;
@@ -886,7 +900,7 @@ namespace Microsoft.Xna.Framework.Graphics
         /// <param name="text">The text which will be drawn.</param>
         /// <param name="position">The drawing location on screen.</param>
         /// <param name="color">A color mask.</param>
-		public unsafe void DrawString (SpriteFont spriteFont, StringBuilder text, Vector2 position, Color color)
+		public unsafe void DrawString (SpriteFont spriteFont, StringBuilder text, Vector2 position, Color color, Matrix? transformMatrix = null)
 		{
             CheckValid(spriteFont, text);
             
@@ -951,7 +965,8 @@ namespace Microsoft.Xna.Framework.Graphics
                          color,
                          _texCoordTL,
                          _texCoordBR,
-                         0);
+                         0,
+                         transformMatrix);
 
                 offset.X += pCurrentGlyph->Width + pCurrentGlyph->RightSideBearing;
             }
@@ -994,7 +1009,7 @@ namespace Microsoft.Xna.Framework.Graphics
         /// <param name="layerDepth">A depth of the layer of this string.</param>
 		public unsafe void DrawString (
 			SpriteFont spriteFont, StringBuilder text, Vector2 position, Color color,
-            float rotation, Vector2 origin, Vector2 scale, SpriteEffects effects, float layerDepth)
+            float rotation, Vector2 origin, Vector2 scale, SpriteEffects effects, float layerDepth, Matrix? transformMatrix = null)
 		{
             CheckValid(spriteFont, text);
             
@@ -1142,7 +1157,8 @@ namespace Microsoft.Xna.Framework.Graphics
                             color,
                             _texCoordTL,
                             _texCoordBR,
-                            layerDepth);
+                            layerDepth,
+                            transformMatrix);
                 }
                 else
                 {
@@ -1157,7 +1173,8 @@ namespace Microsoft.Xna.Framework.Graphics
                             color,
                             _texCoordTL,
                             _texCoordBR,
-                            layerDepth);
+                            layerDepth,
+                            transformMatrix);
                 }
 
                 offset.X += pCurrentGlyph->Width + pCurrentGlyph->RightSideBearing;

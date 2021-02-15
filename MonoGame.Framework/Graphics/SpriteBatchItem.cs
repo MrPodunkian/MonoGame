@@ -23,7 +23,7 @@ namespace Microsoft.Xna.Framework.Graphics
             vertexBR = new VertexPositionColorTexture();            
 		}
 		
-		public void Set ( float x, float y, float dx, float dy, float w, float h, float sin, float cos, Color color, Vector2 texCoordTL, Vector2 texCoordBR, float depth )
+		public void Set ( float x, float y, float dx, float dy, float w, float h, float sin, float cos, Color color, Vector2 texCoordTL, Vector2 texCoordBR, float depth, Matrix? transformMatrix)
 		{
             // TODO, Should we be just assigning the Depth Value to Z?
             // According to http://blogs.msdn.com/b/shawnhar/archive/2011/01/12/spritebatch-billboards-in-a-3d-world.aspx
@@ -55,9 +55,18 @@ namespace Microsoft.Xna.Framework.Graphics
             vertexBR.Color = color;
             vertexBR.TextureCoordinate.X = texCoordBR.X;
             vertexBR.TextureCoordinate.Y = texCoordBR.Y;
+
+            // HACK: Allow passing in a transform matrix.
+            if (transformMatrix != null)
+            {
+                vertexTL.Position = Vector3.Transform(vertexTL.Position, transformMatrix.Value);
+                vertexTR.Position = Vector3.Transform(vertexTR.Position, transformMatrix.Value);
+                vertexBL.Position = Vector3.Transform(vertexBL.Position, transformMatrix.Value);
+                vertexBR.Position = Vector3.Transform(vertexBR.Position, transformMatrix.Value);
+            }
 		}
 
-        public void Set(float x, float y, float w, float h, Color color, Vector2 texCoordTL, Vector2 texCoordBR, float depth)
+        public void Set(float x, float y, float w, float h, Color color, Vector2 texCoordTL, Vector2 texCoordBR, float depth, Matrix? transformMatrix)
         {
             vertexTL.Position.X = x;
             vertexTL.Position.Y = y;
@@ -86,6 +95,15 @@ namespace Microsoft.Xna.Framework.Graphics
             vertexBR.Color = color;
             vertexBR.TextureCoordinate.X = texCoordBR.X;
             vertexBR.TextureCoordinate.Y = texCoordBR.Y;
+
+            // HACK: Allow passing in a transform matrix.
+            if (transformMatrix != null)
+            {
+                vertexTL.Position = Vector3.Transform(vertexTL.Position, transformMatrix.Value);
+                vertexTR.Position = Vector3.Transform(vertexTR.Position, transformMatrix.Value);
+                vertexBL.Position = Vector3.Transform(vertexBL.Position, transformMatrix.Value);
+                vertexBR.Position = Vector3.Transform(vertexBR.Position, transformMatrix.Value);
+            }
         }
 
         #region Implement IComparable
