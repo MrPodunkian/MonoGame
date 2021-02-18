@@ -123,6 +123,9 @@ internal static class Sdl
         public Joystick.DeviceEvent JoystickDevice;
         [FieldOffset(0)]
         public GameController.DeviceEvent ControllerDevice;
+        // 2/18/2021: ARTHUR: Added drag and drop support.
+        [FieldOffset(0)]
+        public Drop.DropEvent Drop;
     }
 
     public struct Rectangle
@@ -684,6 +687,23 @@ internal static class Sdl
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         public delegate void d_sdl_warpmouseinwindow(IntPtr window, int x, int y);
         public static d_sdl_warpmouseinwindow WarpInWindow = FuncLoader.LoadFunction<d_sdl_warpmouseinwindow>(NativeLibrary, "SDL_WarpMouseInWindow");
+    }
+
+    // 2/18/2021: ARTHUR: Added drag and drop support.
+    public static class Drop
+    {
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        public delegate void d_sdl_free(IntPtr ptr);
+        public static d_sdl_free SDL_Free = FuncLoader.LoadFunction<d_sdl_free>(NativeLibrary, "SDL_free");
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct DropEvent
+        {
+            public EventType Type;
+            public uint Timestamp;
+            public IntPtr File;
+            public uint WindowId;
+        }
     }
 
     public static class Keyboard

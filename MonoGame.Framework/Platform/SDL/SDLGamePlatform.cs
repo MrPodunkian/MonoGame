@@ -150,6 +150,14 @@ namespace Microsoft.Xna.Framework
                         _view.OnKeyUp(new InputKeyEventArgs(key));
                         break;
                     }
+                    // 2/18/2021: ARTHUR: Added drag and drop support.
+                    case Sdl.EventType.DropFile:
+                        {
+                            var file_path = Marshal.PtrToStringAnsi(ev.Drop.File);
+                            _view.OnFileDrop(new FileDropEventArgs(file_path));
+                            Sdl.Drop.SDL_Free(ev.Drop.File);
+                        }
+                        break;
                     case Sdl.EventType.TextInput:
                         if (_view.IsTextInputHandled)
                         {

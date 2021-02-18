@@ -153,6 +153,17 @@ namespace Microsoft.Xna.Framework
         /// </summary>
         public event EventHandler<InputKeyEventArgs> KeyUp;
 
+        // 2/18/2021: ARTHUR: Added drag and drop support.
+
+        /// <summary>
+        /// Raised when the user drags and drops a file into the game window.
+        /// </summary>
+        public event EventHandler<FileDropEventArgs> FileDrop;
+
+        internal void OnFileDrop(FileDropEventArgs e)
+        {
+            EventHelpers.Raise(this, FileDrop, e);
+        }
 #endif
 
         #endregion Events
