@@ -8,6 +8,7 @@ using System.Reflection;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using MonoGame.Framework.Utilities;
+using StbImageSharp;
 
 namespace Microsoft.Xna.Framework
 {
@@ -108,22 +109,55 @@ namespace Microsoft.Xna.Framework
             // when running NUnit tests entry assembly can be null
             if (Assembly.GetEntryAssembly() != null)
             {
-                using (
-                    var stream =
-                        Assembly.GetEntryAssembly().GetManifestResourceStream(Assembly.GetEntryAssembly().EntryPoint.DeclaringType.Namespace + ".Icon.bmp") ??
-                        Assembly.GetEntryAssembly().GetManifestResourceStream("Icon.bmp") ??
-                        Assembly.GetExecutingAssembly().GetManifestResourceStream("MonoGame.bmp"))
+                // Attempt to load the PNG icon first.
+                try
                 {
-                    if (stream != null)
-                        using (var br = new BinaryReader(stream))
+                    using (var stream =
+#if DEBUG
+                        // If the game is running with the debugger attached, use an alternate icon so that it is easily distinguishable from the non-debugging instances.
+                        (System.Diagnostics.Debugger.IsAttached ? Assembly.GetEntryAssembly().GetManifestResourceStream("DebugIcon.png") : null ) ??
+#endif
+                        Assembly.GetEntryAssembly().GetManifestResourceStream("Icon.png"))
+                    {
+                        byte[] icon_data = new byte[stream.Length];
+                        stream.Read(icon_data, 0, (int)stream.Length);
+                        ImageResult image = ImageResult.FromMemory(icon_data);
+
+                        uint r_mask = 0x000000FF;
+                        uint g_mask = 0x0000FF00;
+                        uint b_mask = 0x00FF0000;
+                        uint a_mask = 0xFF000000;
+
+                        if (!BitConverter.IsLittleEndian)
                         {
-                            try
-                            {
-                                var src = Sdl.RwFromMem(br.ReadBytes((int)stream.Length), (int)stream.Length);
-                                _icon = Sdl.LoadBMP_RW(src, 1);
-                            }
-                            catch { }
+                            r_mask = 0xFF000000;
+                            g_mask = 0x00FF0000;
+                            b_mask = 0x0000FF00;
+                            a_mask = 0x000000FF;
                         }
+
+                        _icon = Sdl.CreateRGBSurfaceFrom(image.Data, image.Width, image.Height, 32, 4 * image.Width, r_mask, g_mask, b_mask, a_mask);
+                    }
+                }
+                catch (Exception e)
+                {
+                    using (
+                        var stream =
+                            Assembly.GetEntryAssembly().GetManifestResourceStream(Assembly.GetEntryAssembly().EntryPoint.DeclaringType.Namespace + ".Icon.bmp") ??
+                            Assembly.GetEntryAssembly().GetManifestResourceStream("Icon.bmp") ??
+                            Assembly.GetExecutingAssembly().GetManifestResourceStream("MonoGame.bmp"))
+                    {
+                        if (stream != null)
+                            using (var br = new BinaryReader(stream))
+                            {
+                                try
+                                {
+                                    var src = Sdl.RwFromMem(br.ReadBytes((int)stream.Length), (int)stream.Length);
+                                    _icon = Sdl.LoadBMP_RW(src, 1);
+                                }
+                                catch { }
+                            }
+                    }
                 }
             }
 
