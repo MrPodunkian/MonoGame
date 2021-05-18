@@ -24,19 +24,19 @@ struct VSOutput
 	float4 position		: SV_Position;
 	float4 color		: COLOR0;
     float2 texCoord		: TEXCOORD0;
-	float2 texCoord2		: TEXCOORD1;
+	float2 texCoord1		: TEXCOORD1;
 };
 
 VSOutput SpriteVertexShader(	float4 position	: POSITION0,
 								float4 color	: COLOR0,
 								float2 texCoord	: TEXCOORD0,
-								float2 texCoord2	: TEXCOORD1)
+								float2 texCoord1	: TEXCOORD1)
 {
 	VSOutput output;
     output.position = mul(position, MatrixTransform);
 	output.color = color;
 	output.texCoord = texCoord;
-	output.texCoord2 = texCoord2;
+	output.texCoord1 = texCoord1;
 	return output;
 }
 
