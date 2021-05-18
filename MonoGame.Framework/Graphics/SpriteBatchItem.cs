@@ -56,6 +56,16 @@ namespace Microsoft.Xna.Framework.Graphics
             vertexBR.TextureCoordinate.X = texCoordBR.X;
             vertexBR.TextureCoordinate.Y = texCoordBR.Y;
 
+            // ARTHUR 5/18/2021: Added normalized quad coordinates.
+            vertexTL.TextureCoordinate2.X = 0;
+            vertexTL.TextureCoordinate2.Y = 0;
+            vertexTR.TextureCoordinate2.X = 1;
+            vertexTR.TextureCoordinate2.Y = 0;
+            vertexBL.TextureCoordinate2.X = 0;
+            vertexBL.TextureCoordinate2.Y = 1;
+            vertexBR.TextureCoordinate2.X = 1;
+            vertexBR.TextureCoordinate2.Y = 1;
+
             // HACK: Allow passing in a transform matrix.
             if (transformMatrix != null)
             {
@@ -95,6 +105,16 @@ namespace Microsoft.Xna.Framework.Graphics
             vertexBR.Color = color;
             vertexBR.TextureCoordinate.X = texCoordBR.X;
             vertexBR.TextureCoordinate.Y = texCoordBR.Y;
+
+            // ARTHUR 5/18/2021: Added normalized quad coordinates.
+            vertexTL.TextureCoordinate2.X = 0;
+            vertexTL.TextureCoordinate2.Y = 0;
+            vertexTR.TextureCoordinate2.X = 1;
+            vertexTR.TextureCoordinate2.Y = 0;
+            vertexBL.TextureCoordinate2.X = 0;
+            vertexBL.TextureCoordinate2.Y = 1;
+            vertexBR.TextureCoordinate2.X = 1;
+            vertexBR.TextureCoordinate2.Y = 1;
 
             // HACK: Allow passing in a transform matrix.
             if (transformMatrix != null)
