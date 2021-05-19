@@ -9,14 +9,18 @@ namespace Microsoft.Xna.Framework.Graphics
         public Color Color;
         public Vector2 TextureCoordinate;
         public Vector2 TextureCoordinate1; // ARTHUR 5/18/2021: Added a second texture coordinate channel for normalized coordinate. (0, 0 for upper left of quad as submitted by batcher, 1, 1 for lower right)
+        public Vector2 TextureCoordinate2;
+        public Vector2 TextureCoordinate3;
         public static readonly VertexDeclaration VertexDeclaration;
 
-        public VertexPositionColorTexture(Vector3 position, Color color, Vector2 textureCoordinate, Vector2 textureCoordinate1)
+        public VertexPositionColorTexture(Vector3 position, Color color, Vector2 textureCoordinate, Vector2 textureCoordinate1, Vector2 textureCoordinate2, Vector2 textureCoordinate3)
         {
             Position = position;
             Color = color;
             TextureCoordinate = textureCoordinate;
             TextureCoordinate1 = textureCoordinate1;
+            TextureCoordinate2 = textureCoordinate2;
+            TextureCoordinate3 = textureCoordinate3;
         }
 		
         VertexDeclaration IVertexType.VertexDeclaration
@@ -35,18 +39,20 @@ namespace Microsoft.Xna.Framework.Graphics
                 hashCode = (hashCode * 397) ^ Color.GetHashCode();
                 hashCode = (hashCode * 397) ^ TextureCoordinate.GetHashCode();
                 hashCode = (hashCode * 397) ^ TextureCoordinate1.GetHashCode();
+                hashCode = (hashCode * 397) ^ TextureCoordinate2.GetHashCode();
+                hashCode = (hashCode * 397) ^ TextureCoordinate3.GetHashCode();
                 return hashCode;
             }
         }
 
         public override string ToString()
         {
-            return "{{Position:" + this.Position + " Color:" + this.Color + " TextureCoordinate:" + this.TextureCoordinate + " TextureCoordinate2:" + this.TextureCoordinate1 + "}}";
+            return "{{Position:" + this.Position + " Color:" + this.Color + " TextureCoordinate:" + this.TextureCoordinate + " TextureCoordinate1:" + this.TextureCoordinate1 + " TextureCoordinate2:" + this.TextureCoordinate2 + " TextureCoordinate3:" + this.TextureCoordinate3 + "}}";
         }
 
         public static bool operator ==(VertexPositionColorTexture left, VertexPositionColorTexture right)
         {
-            return ((((left.Position == right.Position) && (left.Color == right.Color)) && (left.TextureCoordinate == right.TextureCoordinate)) && (left.TextureCoordinate1 == right.TextureCoordinate1));
+            return ((((((left.Position == right.Position) && (left.Color == right.Color)) && (left.TextureCoordinate == right.TextureCoordinate)) && (left.TextureCoordinate1 == right.TextureCoordinate1)) && (left.TextureCoordinate1 == right.TextureCoordinate2)) && (left.TextureCoordinate1 == right.TextureCoordinate3));
         }
 
         public static bool operator !=(VertexPositionColorTexture left, VertexPositionColorTexture right)
@@ -72,7 +78,9 @@ namespace Microsoft.Xna.Framework.Graphics
                 new VertexElement(0, VertexElementFormat.Vector3, VertexElementUsage.Position, 0),
                 new VertexElement(12, VertexElementFormat.Color, VertexElementUsage.Color, 0),
                 new VertexElement(16, VertexElementFormat.Vector2, VertexElementUsage.TextureCoordinate, 0),
-                new VertexElement(24, VertexElementFormat.Vector2, VertexElementUsage.TextureCoordinate, 1)
+                new VertexElement(24, VertexElementFormat.Vector2, VertexElementUsage.TextureCoordinate, 1),
+                new VertexElement(32, VertexElementFormat.Vector2, VertexElementUsage.TextureCoordinate, 2),
+                new VertexElement(40, VertexElementFormat.Vector2, VertexElementUsage.TextureCoordinate, 3)
             };
 
             VertexDeclaration = new VertexDeclaration(elements);

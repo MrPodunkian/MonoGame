@@ -47,6 +47,8 @@ namespace Microsoft.Xna.Framework.Graphics
 
 	    private readonly bool _isClone;
 
+        protected EffectParameter _texelSizeParameter;
+
         internal Effect(GraphicsDevice graphicsDevice)
 		{
             if (graphicsDevice == null)
@@ -172,6 +174,13 @@ namespace Microsoft.Xna.Framework.Graphics
 
             // Take a reference to the original shader list.
             _shaders = cloneSource._shaders;
+
+            CacheParameters();
+        }
+
+        protected virtual void CacheParameters()
+        {
+            _texelSizeParameter = Parameters["TexelSize"];
         }
 
         /// <summary>
@@ -187,6 +196,19 @@ namespace Microsoft.Xna.Framework.Graphics
 		{
             return new Effect(this);
 		}
+
+        public virtual void OnApplyTextureDependentState(Texture texture)
+        {
+            Texture2D texture_2d = texture as Texture2D;
+
+            if (texture_2d != null)
+            {
+                if (_texelSizeParameter != null)
+                {
+                    _texelSizeParameter.SetValue(new Vector2(texture_2d.TexelWidth, texture_2d.TexelHeight));
+                }
+            }
+        }
 
         protected internal virtual void OnApply()
         {

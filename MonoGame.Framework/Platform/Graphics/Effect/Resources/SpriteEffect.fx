@@ -25,18 +25,24 @@ struct VSOutput
 	float4 color		: COLOR0;
     float2 texCoord		: TEXCOORD0;
 	float2 texCoord1		: TEXCOORD1;
+	float2 texCoord2		: TEXCOORD2;
+	float2 texCoord3		: TEXCOORD3;
 };
 
 VSOutput SpriteVertexShader(	float4 position	: POSITION0,
 								float4 color	: COLOR0,
 								float2 texCoord	: TEXCOORD0,
-								float2 texCoord1	: TEXCOORD1)
+								float2 texCoord1	: TEXCOORD1,
+								float2 texCoord2	: TEXCOORD2,
+								float2 texCoord3	: TEXCOORD3)
 {
 	VSOutput output;
     output.position = mul(position, MatrixTransform);
 	output.color = color;
 	output.texCoord = texCoord;
 	output.texCoord1 = texCoord1;
+	output.texCoord2 = texCoord2;
+	output.texCoord3 = texCoord3;
 	return output;
 }
 

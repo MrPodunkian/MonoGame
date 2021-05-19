@@ -252,6 +252,7 @@ namespace Microsoft.Xna.Framework.Graphics
                 var passes = effect.CurrentTechnique.Passes;
                 foreach (var pass in passes)
                 {
+                    pass.ApplyTextureDependentStates(texture);
                     pass.Apply();
 
                     // Whatever happens in pass.Apply, make sure the texture being drawn

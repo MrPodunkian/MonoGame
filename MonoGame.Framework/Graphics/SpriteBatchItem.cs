@@ -66,6 +66,8 @@ namespace Microsoft.Xna.Framework.Graphics
             vertexBR.TextureCoordinate1.X = 1;
             vertexBR.TextureCoordinate1.Y = 1;
 
+            SetSourceRectCoordinates();
+
             // HACK: Allow passing in a transform matrix.
             if (transformMatrix != null)
             {
@@ -116,6 +118,8 @@ namespace Microsoft.Xna.Framework.Graphics
             vertexBR.TextureCoordinate1.X = 1;
             vertexBR.TextureCoordinate1.Y = 1;
 
+            SetSourceRectCoordinates();
+
             // HACK: Allow passing in a transform matrix.
             if (transformMatrix != null)
             {
@@ -124,6 +128,23 @@ namespace Microsoft.Xna.Framework.Graphics
                 vertexBL.Position = Vector3.Transform(vertexBL.Position, transformMatrix.Value);
                 vertexBR.Position = Vector3.Transform(vertexBR.Position, transformMatrix.Value);
             }
+        }
+
+        public void SetSourceRectCoordinates()
+        {
+            vertexTL.TextureCoordinate2.X = Math.Min(vertexTL.TextureCoordinate.X, vertexTR.TextureCoordinate.X);
+            vertexTL.TextureCoordinate2.Y = Math.Min(vertexTL.TextureCoordinate.Y, vertexBR.TextureCoordinate.Y);
+            vertexTL.TextureCoordinate3.X = Math.Max(vertexTL.TextureCoordinate.X, vertexTR.TextureCoordinate.X) - vertexTL.TextureCoordinate2.X;
+            vertexTL.TextureCoordinate3.Y = Math.Max(vertexTL.TextureCoordinate.Y, vertexBR.TextureCoordinate.Y) - vertexTL.TextureCoordinate2.Y;
+
+            vertexTR.TextureCoordinate2 = vertexTL.TextureCoordinate2;
+            vertexTR.TextureCoordinate3 = vertexTL.TextureCoordinate3;
+
+            vertexBL.TextureCoordinate2 = vertexTL.TextureCoordinate2;
+            vertexBL.TextureCoordinate3 = vertexTL.TextureCoordinate3;
+
+            vertexBR.TextureCoordinate2 = vertexTL.TextureCoordinate2;
+            vertexBR.TextureCoordinate3 = vertexTL.TextureCoordinate3;
         }
 
         #region Implement IComparable

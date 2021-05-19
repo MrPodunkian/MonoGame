@@ -60,6 +60,11 @@ namespace Microsoft.Xna.Framework.Graphics
             _pixelShader = cloneSource._pixelShader;
         }
 
+        public void ApplyTextureDependentStates(Texture texture)
+        {
+            _effect.OnApplyTextureDependentState(texture);
+        }
+
         public void Apply()
         {
             // Set/get the correct shader handle/cleanups.
