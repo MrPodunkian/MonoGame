@@ -214,5 +214,15 @@ namespace Microsoft.Xna.Framework.Audio
                 _isDisposed = true;
             }
         }
+
+        public void SetFilter(FilterMode mode, float filter_q, float frequency)
+        {
+            PlatformSetFilter(mode, filter_q, frequency);
+        }
+
+        public void SetReverb(float reverb)
+        {
+            PlatformSetReverbMix(reverb);
+        }
     }
 }

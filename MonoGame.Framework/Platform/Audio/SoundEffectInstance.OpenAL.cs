@@ -187,7 +187,7 @@ namespace Microsoft.Xna.Framework.Audio
 
                     // Reset the SendFilter to 0 if we are NOT using reverb since
                     // sources are recycled
-                    if (OpenALSoundController.Instance.SupportsEfx)
+                    if (OpenALSoundController.Efx.IsInitialized) // ARTHUR 6/11/2021: Switched over from OpenALSoundController.SupportsEfx for consistency with reverb binding (and because SupportEfx returns false for some reason).
                     {
                         OpenALSoundController.Efx.BindSourceToAuxiliarySlot(SourceId, 0, 0, 0);
                         ALHelper.CheckError("Failed to unset reverb.");

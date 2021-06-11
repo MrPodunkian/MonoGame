@@ -178,7 +178,7 @@ namespace Microsoft.Xna.Framework.Audio
 
         #endregion
 
-        internal static void PlatformSetReverbSettings(ReverbSettings reverbSettings)
+        public static void PlatformSetReverbSettings(ReverbSettings reverbSettings)
         {
             if (!OpenALSoundController.Efx.IsInitialized)
                 return;

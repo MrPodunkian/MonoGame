@@ -12,6 +12,13 @@ namespace Microsoft.Xna.Framework.Audio
         public readonly float MinValue;
         public readonly float MaxValue;
 
+        public DspParameter(float value, float min_value, float max_value)
+        {
+            Value = value;
+            MinValue = min_value;
+            MaxValue = max_value;
+        }
+
         public DspParameter(BinaryReader reader)
         {
             // This is 1 if the type is byte sized and 0 for 

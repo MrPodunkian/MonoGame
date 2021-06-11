@@ -7,9 +7,36 @@ using System.IO;
 
 namespace Microsoft.Xna.Framework.Audio
 {
-    class ReverbSettings
+    public class ReverbSettings
     {
         private readonly DspParameter[] _parameters = new DspParameter[22];
+
+        // ARTHUR 6/11/2021: Made ReverbSettings public and added default constructor based on values from FarmerSounds.xap
+        public ReverbSettings()
+        {
+            _parameters[0] = new DspParameter(15, 0, 300); // ReflectionsDelayMs
+            _parameters[1] = new DspParameter(22, 0, 85); // ReverbDelayMs
+            _parameters[2] = new DspParameter(6, 0, 30); // PositionLeft
+            _parameters[3] = new DspParameter(6, 0, 30); // PositionRight
+            _parameters[4] = new DspParameter(27, 0, 30); // PositionLeftMatrix
+            _parameters[5] = new DspParameter(27, 0, 30); // PositionRightMatrix
+            _parameters[6] = new DspParameter(15, 0, 15); // EarlyDiffusion
+            _parameters[7] = new DspParameter(15, 0, 15); // LateDiffusion
+            _parameters[8] = new DspParameter(8, 0, 12); // LowEqGain
+            _parameters[9] = new DspParameter(4, 0, 9); // LowEqCutoff
+            _parameters[10] = new DspParameter(8, 0, 8); // HighEqGain
+            _parameters[11] = new DspParameter(6, 0, 14); // HighEqCutoff
+            _parameters[12] = new DspParameter(0, 5, 5); // RearDelayMs
+            _parameters[13] = new DspParameter(6198.798828F, 20, 20000); // RoomFilterFrequencyHz
+            _parameters[14] = new DspParameter(-10, -100, 0); // RoomFilterMainDb
+            _parameters[15] = new DspParameter(0, -100, 0); // RoomFilterHighFrequencyDb
+            _parameters[16] = new DspParameter(-6.02F, -100, 20); // ReflectionsGainDb
+            _parameters[17] = new DspParameter(-3.02F, -100, 20); // ReverbGainDb
+            _parameters[18] = new DspParameter(5.125499F, 0.1F, 30); // DecayTimeSec
+            _parameters[19] = new DspParameter(100, 0, 100); // DensityPct
+            _parameters[20] = new DspParameter(100, 1, 100); // RoomSizeFeet
+            _parameters[21] = new DspParameter(100, 0, 100); // WetDryMixPct
+        }
 
         public ReverbSettings(BinaryReader reader)
         {
