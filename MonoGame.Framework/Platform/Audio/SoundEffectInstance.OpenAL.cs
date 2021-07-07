@@ -182,12 +182,18 @@ namespace Microsoft.Xna.Framework.Audio
             {
                 if (HasSourceId && AL.IsSource(SourceId))
                 {
+                    // ARTHUR 6/24/2021: It seems that sound sources aren't properly resetting their values, causing sounds to be distorted (pitched incorrectly) when recycled.
+                    AL.Source(SourceId, ALSourceb.Looping, false);
+                    AL.Source(SourceId, ALSource3f.Position, 0.0F, 0.0f, 0.1f);
+                    AL.Source(SourceId, ALSourcef.Pitch, 1.0F);
+                    AL.Source(SourceId, ALSourcef.Gain, 1.0F);
+
                     AL.SourceStop(SourceId);
                     ALHelper.CheckError("Failed to stop source.");
 
                     // Reset the SendFilter to 0 if we are NOT using reverb since
                     // sources are recycled
-                    if (OpenALSoundController.Instance.SupportsEfx)
+                    if (OpenALSoundController.Efx.IsInitialized) // ARTHUR 6/11/2021: Switched over from OpenALSoundController.SupportsEfx for consistency with reverb binding (and because SupportEfx returns false for some reason).
                     {
                         OpenALSoundController.Efx.BindSourceToAuxiliarySlot(SourceId, 0, 0, 0);
                         ALHelper.CheckError("Failed to unset reverb.");
