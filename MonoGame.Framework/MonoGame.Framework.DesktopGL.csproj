@@ -12,11 +12,6 @@
     <Version>3.8.0.1641</Version>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netstandard2.0|AnyCPU'">
-    <WarningsAsErrors>;NU1605</WarningsAsErrors>
-    <NoWarn>1701;1702;1591</NoWarn>
-  </PropertyGroup>
-
   <!-- NETFX reference assemblies let us target .NET Framework on Mac/Linux without Mono -->
   <ItemGroup>
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.0">
