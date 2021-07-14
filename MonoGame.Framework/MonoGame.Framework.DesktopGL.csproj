@@ -144,7 +144,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Farmer\FAudioSharp\FAudio-CS.csproj" />
+    <ProjectReference Include="..\..\FAudio\FAudio-CS.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="FAudio.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
   <Import Project="Platform\OpenGL.targets" />
