@@ -275,7 +275,7 @@ namespace Microsoft.Xna.Framework.Audio
             return outData;
         }
 
-        #region IMA4 decoding
+#region IMA4 decoding
 
         // Step table
         static int[] stepTable = new int[]
@@ -444,9 +444,9 @@ namespace Microsoft.Xna.Framework.Audio
             return samples;
         }
 
-        #endregion
+#endregion
 
-        #region MS-ADPCM decoding
+#region MS-ADPCM decoding
 
         static int[] adaptationTable = new int[]
         {
@@ -643,6 +643,6 @@ namespace Microsoft.Xna.Framework.Audio
             return samples;
         }
 
-        #endregion
+#endregion
     }
 }

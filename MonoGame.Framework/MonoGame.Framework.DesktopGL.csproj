@@ -1,8 +1,8 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;net452</TargetFrameworks>
-    <DefineConstants>OPENGL;OPENAL;XNADESIGNPROVIDED;LINUX;DESKTOPGL;SUPPORTS_EFX;NETSTANDARD;STBSHARP_INTERNAL</DefineConstants>
+    <DefineConstants>OPENGL;OPENAL;XNADESIGNPROVIDED;LINUX;DESKTOPGL;SUPPORTS_EFX;NETSTANDARD;STBSHARP_INTERNAL;FAUDIO</DefineConstants>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Description>The MonoGame runtime supporting Windows, Linux and macOS using SDL2 and OpenGL.</Description>
     <PackageTags>monogame;.net core;core;.net standard;standard;desktopgl</PackageTags>
@@ -10,6 +10,7 @@
     <AssemblyVersion>3.8.0.1641</AssemblyVersion>
     <FileVersion>0.0.0.0</FileVersion>
     <Version>3.8.0.1641</Version>
+    <OutputType>Library</OutputType>
   </PropertyGroup>
 
   <!-- NETFX reference assemblies let us target .NET Framework on Mac/Linux without Mono -->
@@ -41,6 +42,13 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="Platform\Audio\DynamicSoundEffectInstance.FAudio.cs" />
+    <Compile Include="Platform\Audio\FAudio.cs" />
+    <Compile Include="Platform\Audio\FAudioSoundController.cs" />
+    <Compile Include="Platform\Audio\Microphone.FAudio.cs" />
+    <Compile Include="Platform\Audio\OggStream.FAudio.cs" />
+    <Compile Include="Platform\Audio\SoundEffect.FAudio.cs" />
+    <Compile Include="Platform\Audio\SoundEffectInstance.FAudio.cs" />
     <Compile Include="Platform\TitleContainer.Desktop.cs" />
     <Compile Include="Platform\Audio\OggStream.cs" />
     <Compile Include="Platform\Graphics\OpenGL.Common.cs" />
@@ -133,6 +141,10 @@
     </Content>
 
     <Content Include="MonoGame.Framework.DesktopGL.targets" PackagePath="build" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Farmer\FAudioSharp\FAudio-CS.csproj" />
   </ItemGroup>
 
   <Import Project="Platform\OpenGL.targets" />

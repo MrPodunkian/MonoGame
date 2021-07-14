@@ -17,8 +17,12 @@ namespace Microsoft.Xna.Framework.Media
 
         private void PlatformInitialize(string fileName)
         {
+#if FAUDIO
+            SoundEffect.Device();
+#else
             // init OpenAL if need be
             OpenALSoundController.EnsureInitialized();
+#endif
 
             stream = new OggStream(fileName, OnFinishedPlaying);
             stream.Prepare();

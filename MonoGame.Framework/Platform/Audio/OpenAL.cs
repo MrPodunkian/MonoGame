@@ -189,6 +189,7 @@ namespace MonoGame.OpenAL
         Reverb = 0x8000,
     }
 
+#if !FAUDIO
     internal class AL
     {
         public static IntPtr NativeLibrary = GetNativeLibrary();
@@ -867,4 +868,5 @@ alEffecti (effect, EfxEffecti.FilterType, (int)EfxEffectType.Reverb);
             alDeleteFilters(1, (uint*)&filterId);
         }
     }
+#endif
 }
