@@ -24,34 +24,24 @@ namespace Microsoft.Xna.Framework.Audio
     /// </summary>
     public sealed partial class Microphone
     {
-        internal static void PopulateCaptureDevices()
-        {
-
-        }
-
         internal void PlatformStart()
         {
-
+            throw new NotImplementedException();
         }
 
         internal void PlatformStop()
         {
-
-        }
-
-        internal int GetQueuedSampleCount()
-        {
-            return 0;
+            throw new NotImplementedException();
         }
 
         internal void Update()
         {
-
+            throw new NotImplementedException();
         }
 
         internal int PlatformGetData(byte[] buffer, int offset, int count)
         {
-            return 0;
+            throw new NotImplementedException();
         }
     }
 }
