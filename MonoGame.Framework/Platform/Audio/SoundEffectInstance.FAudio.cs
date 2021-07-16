@@ -16,7 +16,7 @@ namespace Microsoft.Xna.Framework.Audio
 
 		internal IntPtr handle;
 
-        private float _reverbMix;
+        private float _reverbMix = 0.0F;
 
         internal bool _applyFilter = false;
         internal FilterMode _filterMode;
@@ -242,6 +242,8 @@ namespace Microsoft.Xna.Framework.Audio
 
 		private void PlatformSetVolume(float value)
 		{
+
+
             if (handle == IntPtr.Zero)
             {
                 return;
@@ -252,12 +254,12 @@ namespace Microsoft.Xna.Framework.Audio
 
 		internal void PlatformSetReverbMix(float mix)
 		{
+            _reverbMix = mix;
+
             if (handle == IntPtr.Zero)
             {
                 return;
             }
-
-            _reverbMix = mix;
 
             ApplyReverb();
         }
@@ -370,27 +372,27 @@ namespace Microsoft.Xna.Framework.Audio
 				return;
 			}
 
-			if (!usingReverb)
-			{
-				SoundEffect.Device().AttachReverb(handle);
-				usingReverb = true;
-			}
-            
-			// Re-using this float array...
-			float* outputMatrix = (float*)dspSettings.pMatrixCoefficients;
-			outputMatrix[0] = reverb_gain;
-			if (dspSettings.SrcChannelCount == 2)
-			{
-				outputMatrix[1] = reverb_gain;
-			}
-			FAudio.FAudioVoice_SetOutputMatrix(
-				handle,
-				SoundEffect.Device().ReverbVoice,
-				dspSettings.SrcChannelCount,
-				1,
-				dspSettings.pMatrixCoefficients,
-				0
-			);
+            if (!usingReverb)
+            {
+                SoundEffect.Device().AttachReverb(handle);
+                usingReverb = true;
+            }
+
+            // Re-using this float array...
+            float* outputMatrix = (float*)dspSettings.pMatrixCoefficients;
+            outputMatrix[0] = reverb_gain;
+            if (dspSettings.SrcChannelCount == 2)
+            {
+                outputMatrix[1] = reverb_gain;
+            }
+            FAudio.FAudioVoice_SetOutputMatrix(
+                handle,
+                SoundEffect.Device().ReverbVoice,
+                dspSettings.SrcChannelCount,
+                1,
+                dspSettings.pMatrixCoefficients,
+                0
+            );
 		}
 
 		internal void ApplyLowPassFilter(float cutoff, float one_over_q)
