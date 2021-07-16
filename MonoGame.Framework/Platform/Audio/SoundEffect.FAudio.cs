@@ -45,6 +45,8 @@ namespace Microsoft.Xna.Framework.Audio
 
             duration = TimeSpan.FromSeconds((float)sampleCount / (float)freq);
 
+            Console.WriteLine("Loading audio stream: " + duration);
+
             PlatformInitializeBuffer(buffer, buffer.Length, format, channels, freq, blockAlignment, bitsPerSample, 0, 0);
         }
 
@@ -125,6 +127,8 @@ namespace Microsoft.Xna.Framework.Audio
 
         public void CreateHandle(byte[] buffer, int offset, int count, byte[] extra_data, ushort format_tag, ushort channels, uint samples_per_sec, uint avg_bytes_per_sec, ushort block_align, ushort bits_per_sample, int loop_start, int loop_length)
         {
+            Console.WriteLine("Create Handle\nformat: " + format_tag + "\ncount: " + count + "\nchannels: " + channels + "\nsamples_per_sec: " + samples_per_sec + "\navg_bytes_per_sec: " + avg_bytes_per_sec + "\nblock_align: " + block_align + "\nbits_per_sample: " + bits_per_sample);
+
             Device();
             this.channels = channels;
             this.sampleRate = samples_per_sec;
@@ -171,7 +175,7 @@ namespace Microsoft.Xna.Framework.Audio
 
                 /* Play regions */
                 handle.PlayBegin = 0;
-                if (format_tag == 1)
+                if (format_tag == 1 || format_tag == 3)
                 {
                     handle.PlayLength = (uint)(
                         count /
@@ -220,6 +224,8 @@ namespace Microsoft.Xna.Framework.Audio
 
         private void PlatformInitializeBuffer(byte[] buffer, int bufferSize, ALFormat format, int channels, int sampleRate, int blockAlignment, int bitsPerSample, int loopStart, int loopLength)
         {
+            Console.WriteLine("Initializing sound effect (format: " + format + ")");
+
             switch (format)
             {
                 case ALFormat.Mono8:
