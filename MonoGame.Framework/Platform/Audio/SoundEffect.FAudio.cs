@@ -32,22 +32,23 @@ namespace Microsoft.Xna.Framework.Audio
 
         private void PlatformLoadAudioStream(Stream stream, out TimeSpan duration)
         {
-            byte[] buffer;
+            FAudio.FAudioBuffer audio_buffer;
 
-            ALFormat format;
-            int freq;
-            int channels;
-            int blockAlignment;
-            int bitsPerSample;
-            int samplesPerBlock;
-            int sampleCount;
-            buffer = AudioLoader.Load(stream, out format, out freq, out channels, out blockAlignment, out bitsPerSample, out samplesPerBlock, out sampleCount);
+            using (BinaryReader reader = new BinaryReader(stream))
+            {
+                AudioLoader.Load(reader, out formatPtr, out audio_buffer);
+            }
 
-            duration = TimeSpan.FromSeconds((float)sampleCount / (float)freq);
+            var wave_format = (FAudio.FAudioWaveFormatEx)Marshal.PtrToStructure(formatPtr, typeof(FAudio.FAudioWaveFormatEx));
 
-            Console.WriteLine("Loading audio stream: " + duration);
+            handle = audio_buffer;
 
-            PlatformInitializeBuffer(buffer, buffer.Length, format, channels, freq, blockAlignment, bitsPerSample, 0, 0);
+            this.channels = wave_format.nChannels;
+            this.sampleRate = wave_format.nSamplesPerSec;
+            this.loopStart = (uint)audio_buffer.LoopBegin;
+            this.loopLength = (uint)audio_buffer.LoopLength;
+
+            duration = TimeSpan.FromSeconds(handle.AudioBytes / (wave_format.nChannels * (wave_format.wBitsPerSample / 8)) / wave_format.nSamplesPerSec);
         }
 
         private void PlatformInitializePcm(byte[] buffer, int offset, int count, int sampleBits, int sampleRate, AudioChannels channels, int loopStart, int loopLength)
@@ -90,7 +91,7 @@ namespace Microsoft.Xna.Framework.Audio
 
             // Buffer length must be aligned with the block alignment
             int alignedCount = count - (count % blockAlignment);
-            CreateHandle(buffer, offset, alignedCount, null, 2, (ushort)channels, (uint)sampleRate, (uint)(sampleRate * (int)channels * 2), (ushort)blockAlignment, 16, loopStart, loopLength);
+            CreateHandle(buffer, offset, alignedCount, null, 2, (ushort)channels, (uint)sampleRate, (uint)(sampleRate * (int)channels * 2), (ushort)blockAlignment, 4, loopStart, loopLength);
 
             /*
             SoundBuffer = new OALSoundBuffer();
@@ -127,8 +128,6 @@ namespace Microsoft.Xna.Framework.Audio
 
         public void CreateHandle(byte[] buffer, int offset, int count, byte[] extra_data, ushort format_tag, ushort channels, uint samples_per_sec, uint avg_bytes_per_sec, ushort block_align, ushort bits_per_sample, int loop_start, int loop_length)
         {
-            Console.WriteLine("Create Handle\nformat: " + format_tag + "\ncount: " + count + "\nchannels: " + channels + "\nsamples_per_sec: " + samples_per_sec + "\navg_bytes_per_sec: " + avg_bytes_per_sec + "\nblock_align: " + block_align + "\nbits_per_sample: " + bits_per_sample);
-
             Device();
             this.channels = channels;
             this.sampleRate = samples_per_sec;
@@ -234,6 +233,7 @@ namespace Microsoft.Xna.Framework.Audio
                 case ALFormat.Stereo16:
                     PlatformInitializePcm(buffer, 0, bufferSize, bitsPerSample, sampleRate, (AudioChannels)channels, loopStart, loopLength);
                     break;
+
                 case ALFormat.MonoMSAdpcm:
                 case ALFormat.StereoMSAdpcm:
                     PlatformInitializeAdpcm(buffer, 0, bufferSize, sampleRate, (AudioChannels)channels, blockAlignment, loopStart, loopLength);
@@ -275,6 +275,11 @@ namespace Microsoft.Xna.Framework.Audio
                 IntPtr rvbParamsPtr = Marshal.AllocHGlobal(Marshal.SizeOf(typeof(FAudio.FAudioFXReverbParameters)));
                 FAudio.FAudioFXReverbParameters* rvbParams = (FAudio.FAudioFXReverbParameters*)rvbParamsPtr;
 
+                FAudio.FAudioVoiceDetails voice_details;
+                FAudio.FAudioVoice_GetVoiceDetails(Device().ReverbVoice, out voice_details);
+
+                var time_scale = 48000.0f / voice_details.InputSampleRate;
+
                 rvbParams->DecayTime = reverbSettings.DecayTimeSec;
                 rvbParams->Density = reverbSettings.DensityPct;
                 rvbParams->EarlyDiffusion = (byte)reverbSettings.EarlyDiffusion;
@@ -287,12 +292,12 @@ namespace Microsoft.Xna.Framework.Audio
                 rvbParams->PositionMatrixLeft = (byte)reverbSettings.PositionLeftMatrix;
                 rvbParams->PositionMatrixRight = (byte)reverbSettings.PositionRightMatrix;
                 rvbParams->PositionRight = (byte)reverbSettings.PositionRight;
-                rvbParams->RearDelay = (byte)reverbSettings.RearDelayMs;
-                rvbParams->ReflectionsDelay = (byte)reverbSettings.ReflectionsDelayMs;
+                rvbParams->RearDelay = (byte)(reverbSettings.RearDelayMs * time_scale);
+                rvbParams->ReflectionsDelay = (byte)(reverbSettings.ReflectionsDelayMs * time_scale);
                 rvbParams->ReflectionsGain = reverbSettings.ReflectionsGainDb;
-                rvbParams->ReverbDelay = (byte)reverbSettings.ReverbDelayMs;
+                rvbParams->ReverbDelay = (byte)(reverbSettings.ReverbDelayMs * time_scale);
                 rvbParams->ReverbGain = reverbSettings.ReverbGainDb;
-                rvbParams->RoomFilterFreq = reverbSettings.RoomFilterFrequencyHz;
+                rvbParams->RoomFilterFreq = (reverbSettings.RoomFilterFrequencyHz * time_scale);
                 rvbParams->RoomFilterHF = reverbSettings.RoomFilterHighFrequencyDb;
                 rvbParams->RoomFilterMain = reverbSettings.RoomFilterMainDb;
                 rvbParams->RoomSize = reverbSettings.RoomSizeFeet;
@@ -307,6 +312,7 @@ namespace Microsoft.Xna.Framework.Audio
                     );
 
                 Marshal.FreeHGlobal(rvbParamsPtr);
+
             }
         }
 
