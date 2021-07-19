@@ -1,12 +1,10 @@
-﻿#if FAUDIO
-// MonoGame - Copyright (C) The MonoGame Team
+﻿// MonoGame - Copyright (C) The MonoGame Team
 // This file is subject to the terms and conditions defined in
 // file 'LICENSE.txt', which is part of this source code package.
 
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using MonoGame.OpenAL;
 
 namespace Microsoft.Xna.Framework.Audio
 {
@@ -16,8 +14,6 @@ namespace Microsoft.Xna.Framework.Audio
 
         private List<IntPtr> queuedBuffers;
         private List<uint> queuedSizes;
-
-        private const int MINIMUM_BUFFER_CHECK = 3;
 
         private void PlatformCreate()
         {
@@ -46,27 +42,21 @@ namespace Microsoft.Xna.Framework.Audio
         private void PlatformPlay()
         {
             base.Play();
-
-            /*
-            lock (FrameworkDispatcher.Streams)
-            {
-                FrameworkDispatcher.Streams.Add(this);
-            }*/
         }
 
         private void PlatformPause()
         {
-            
+            base.Pause();
         }
 
         private void PlatformResume()
         {
-
+            base.Resume();
         }
-
+        
         private void PlatformStop()
         {
-
+            base.Stop();
         }
 
         private void PlatformSubmitBuffer(byte[] buffer, int offset, int count)
@@ -101,6 +91,7 @@ namespace Microsoft.Xna.Framework.Audio
 
         private void PlatformDispose(bool disposing)
         {
+            ClearBuffers();
             base.Dispose(disposing);
         }
 
@@ -145,28 +136,35 @@ namespace Microsoft.Xna.Framework.Audio
         {
             if (State != SoundState.Playing)
             {
-                // Shh, we don't need you right now...
                 return;
             }
 
             if (handle != IntPtr.Zero)
             {
                 FAudio.FAudioVoiceState state;
+
                 FAudio.FAudioSourceVoice_GetState(
                     handle,
                     out state,
                     FAudio.FAUDIO_VOICE_NOSAMPLESPLAYED
                 );
+
+                int removed_buffers = 0;
+
                 while (PendingBufferCount > state.BuffersQueued)
                 {
                     lock (queuedBuffers)
                     {
                         Marshal.FreeHGlobal(queuedBuffers[0]);
                         queuedBuffers.RemoveAt(0);
+                        removed_buffers++;
                     }
                 }
+
+                // Raise the event for each removed buffer, if needed
+                for (int i = 0; i < removed_buffers; i++)
+                    CheckBufferCount();
             }
         }
     }
 }
-#endif

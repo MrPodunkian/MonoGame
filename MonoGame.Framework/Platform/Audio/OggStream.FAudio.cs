@@ -1,4 +1,11 @@
-﻿#if FAUDIO
+﻿// This code originated from:
+//
+//    http://theinstructionlimit.com/ogg-streaming-using-opentk-and-nvorbis
+//    https://github.com/renaudbedard/nvorbis/
+//
+// It was released to the public domain by the author (Renaud Bedard).
+// No other license is intended or required.
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -6,20 +13,11 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using NVorbis;
-using MonoGame.OpenAL;
 
 namespace Microsoft.Xna.Framework.Audio
 {
     internal class OggStream : IDisposable
     {
-        const int DefaultBufferCount = 3;
-
-        internal readonly object stopMutex = new object();
-        internal readonly object prepareMutex = new object();
-
-        internal readonly int alSourceId;
-        internal readonly int[] alBufferIds;
-
         readonly string oggFileName;
 
         internal VorbisReader Reader { get; private set; }
@@ -27,38 +25,82 @@ namespace Microsoft.Xna.Framework.Audio
         internal bool Preparing { get; private set; }
 
         public Action FinishedAction { get; private set; }
-        public int BufferCount { get; private set; }
 
-        public OggStream(string filename, Action finishedAction = null, int bufferCount = DefaultBufferCount)
+        protected DynamicSoundEffectInstance _instance;
+
+        const int DefaultBufferSize = 44100;
+        const int BytesPerSample = 2;
+
+        readonly float[] readSampleBuffer;
+        readonly short[] castBuffer;
+        readonly byte[] xnaBuffer;
+
+        protected int bufferSize = DefaultBufferSize;
+
+        public OggStream(string filename, Action finishedAction = null, int buffer_size = DefaultBufferSize)
         {
+            oggFileName = filename;
+            FinishedAction = finishedAction;
+            bufferSize = buffer_size;
+
+            readSampleBuffer = new float[bufferSize];
+            castBuffer = new short[bufferSize];
+            xnaBuffer = new byte[bufferSize * BytesPerSample];
         }
 
         public void Prepare()
         {
+            if (Preparing) return;
+
+            if (!Ready)
+            {
+                Preparing = true;
+                Open(precache: true);
+            }
         }
 
         public void Play()
         {
+            if (_instance == null)
+            {
+                return;
+            }
+
+            // If there aren't any pre
+            if (_instance.PendingBufferCount == 0)
+            {
+                SubmitBuffer();
+            }
+            
+            _instance.Play();
         }
 
         public void Pause()
         {
+            _instance.Pause();
         }
 
         public void Resume()
         {
+            _instance.Resume();
         }
 
         public void Stop()
         {
+            SeekToPosition(new TimeSpan(0));
+            _instance.Stop();
         }
 
         public void SeekToPosition(TimeSpan pos)
         {
+            Reader.DecodedTime = pos;
         }
 
         public TimeSpan GetPosition()
         {
+            if (Reader == null)
+                return TimeSpan.Zero;
+
             return Reader.DecodedTime;
         }
 
@@ -73,6 +115,7 @@ namespace Microsoft.Xna.Framework.Audio
             get { return volume; }
             set
             {
+                _instance.Volume = value;
             }
         }
 
@@ -80,126 +123,65 @@ namespace Microsoft.Xna.Framework.Audio
 
         public void Dispose()
         {
-        }
-
-        void StopPlayback()
-        {
-        }
-
-        void Empty()
-        {
+            _instance.Dispose();
+            _instance = null;
         }
 
         internal void Open(bool precache = false)
         {
-        }
+            Reader = new VorbisReader(oggFileName);
 
-        internal void Close()
-        {
-        }
-    }
+            _instance = new DynamicSoundEffectInstance(Reader.SampleRate, (Reader.Channels == 1) ? AudioChannels.Mono : AudioChannels.Stereo);
 
-    internal class OggStreamer : IDisposable
-    {
-        const float DefaultUpdateRate = 10;
-        const int DefaultBufferSize = 44100;
+            _instance.BufferNeeded += (s, e) => { SubmitBuffer(); };
 
-        static readonly object singletonMutex = new object();
-
-        readonly object iterationMutex = new object();
-        readonly object readMutex = new object();
-
-        readonly float[] readSampleBuffer;
-        readonly short[] castBuffer;
-
-        readonly HashSet<OggStream> streams = new HashSet<OggStream>();
-        readonly List<OggStream> threadLocalStreams = new List<OggStream>();
-
-        readonly Thread underlyingThread;
-        volatile bool cancelled;
-
-        bool pendingFinish;
-
-        public float UpdateRate { get; private set; }
-        public int BufferSize { get; private set; }
-
-        static OggStreamer instance;
-        public static OggStreamer Instance
-        {
-            get
+            if (precache)
             {
-                lock (singletonMutex)
+                SubmitBuffer();
+            }
+
+            Ready = true;
+            Preparing = false;
+        }
+
+        public virtual void SubmitBuffer()
+        {
+            // Handle stream end.
+            if (Reader.DecodedPosition >= Reader.TotalSamples)
+            {
+                if (_instance.PendingBufferCount == 0)
                 {
-                    if (instance == null)
-                        throw new InvalidOperationException("No instance running");
-                    return instance;
+                    if (FinishedAction != null)
+                    {
+                        FinishedAction();
+                    }
+                }
+
+                return;
+            }
+
+            int read_samples = Reader.ReadSamples(readSampleBuffer, 0, bufferSize);
+
+            /*
+            This code populates a sample that is shorter than the buffer with its contents, but isn't used because looping is handled by MediaPlayer.
+
+            if (IsLooped)
+            {
+                while (read_samples < bufferSize)
+                {
+                    int samples_to_read = bufferSize - read_samples;
+
+                    Reader.DecodedPosition = 0;
+                    read_samples += Reader.ReadSamples(readSampleBuffer, read_samples, samples_to_read);
                 }
             }
-            private set { lock (singletonMutex) instance = value; }
+            */
+
+            CastBuffer(readSampleBuffer, castBuffer, read_samples);
+            Buffer.BlockCopy(castBuffer, 0, xnaBuffer, 0, read_samples * BytesPerSample);
+            _instance.SubmitBuffer(xnaBuffer, 0, read_samples * BytesPerSample);
         }
 
-        public OggStreamer(int bufferSize = DefaultBufferSize, float updateRate = DefaultUpdateRate)
-        {
-            UpdateRate = updateRate;
-            BufferSize = bufferSize;
-            pendingFinish = false;
-
-            lock (singletonMutex)
-            {
-                if (instance != null)
-                    throw new InvalidOperationException("Already running");
-
-                Instance = this;
-                underlyingThread = new Thread(EnsureBuffersFilled)
-                {
-                    Priority = ThreadPriority.Lowest,
-                    IsBackground = true
-                };
-                underlyingThread.Start();
-            }
-
-            readSampleBuffer = new float[bufferSize];
-            castBuffer = new short[bufferSize];
-        }
-
-        public void Dispose()
-        {
-            lock (singletonMutex)
-            {
-                Debug.Assert(Instance == this, "Two instances running, somehow...?");
-
-                cancelled = true;
-                lock (iterationMutex)
-                    streams.Clear();
-
-                Instance = null;
-            }
-        }
-
-        internal bool AddStream(OggStream stream)
-        {
-            lock (iterationMutex)
-                return streams.Add(stream);
-        }
-
-        internal bool RemoveStream(OggStream stream)
-        {
-            lock (iterationMutex)
-                return streams.Remove(stream);
-        }
-
-        public bool FillBuffer(OggStream stream, int bufferId)
-        {
-            int readSamples;
-            lock (readMutex)
-            {
-                readSamples = stream.Reader.ReadSamples(readSampleBuffer, 0, BufferSize);
-                CastBuffer(readSampleBuffer, castBuffer, readSamples);
-            }
-
-
-            return readSamples != BufferSize;
-        }
         static void CastBuffer(float[] inBuffer, short[] outBuffer, int length)
         {
             for (int i = 0; i < length; i++)
@@ -211,13 +193,21 @@ namespace Microsoft.Xna.Framework.Audio
             }
         }
 
-        void EnsureBuffersFilled()
+        internal void Close()
         {
-            while (!cancelled)
+            if (Reader != null)
             {
-                Thread.Sleep((int) (1000 / ((UpdateRate <= 0) ? 1 : UpdateRate)));
+                Reader.Dispose();
+                Reader = null;
             }
+
+            if (_instance != null)
+            {
+                _instance.Dispose();
+                _instance = null;
+            }
+
+            Ready = false;
         }
     }
 }
-#endif

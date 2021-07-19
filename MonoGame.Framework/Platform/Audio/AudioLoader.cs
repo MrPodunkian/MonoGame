@@ -4,7 +4,9 @@
 
 using System;
 using System.IO;
+#if !FAUDIO
 using MonoGame.OpenAL;
+#endif
 using System.Runtime.InteropServices;
 
 namespace Microsoft.Xna.Framework.Audio
@@ -16,6 +18,7 @@ namespace Microsoft.Xna.Framework.Audio
         internal const int FormatIeee = 3;
         internal const int FormatIma4 = 17;
 
+#if !FAUDIO
         public static ALFormat GetSoundFormat(int format, int channels, int bits)
         {
             switch (format)
@@ -99,11 +102,9 @@ namespace Microsoft.Xna.Framework.Audio
                 audioData = LoadWave(reader, out format, out frequency, out channels, out blockAlignment, out bitsPerSample, out samplesPerBlock, out sampleCount);
             }
 
-            
-
             return audioData;
         }
-
+#endif
         public unsafe static bool Load(BinaryReader reader, out IntPtr format_ptr, out FAudio.FAudioBuffer buffer)
         {
             format_ptr = IntPtr.Zero;
@@ -165,7 +166,7 @@ namespace Microsoft.Xna.Framework.Audio
                 }
             }
         }
-
+#if !FAUDIO
         private static byte[] LoadWave(BinaryReader reader, out ALFormat format, out int frequency, out int channels, out int blockAlignment, out int bitsPerSample, out int samplesPerBlock, out int sampleCount)
         {
             byte[] audioData = null;
@@ -288,7 +289,7 @@ namespace Microsoft.Xna.Framework.Audio
 
             return audioData;
         }
-
+#endif
         // Convert buffer containing 24-bit signed PCM wav data to a 16-bit signed PCM buffer
         internal static unsafe byte[] Convert24To16(byte[] data, int offset, int count)
         {
@@ -342,7 +343,7 @@ namespace Microsoft.Xna.Framework.Audio
             return outData;
         }
 
-#region IMA4 decoding
+        #region IMA4 decoding
 
         // Step table
         static int[] stepTable = new int[]

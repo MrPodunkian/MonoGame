@@ -52,21 +52,10 @@ namespace Microsoft.Xna.Framework.Audio
             if (_systemState != SoundSystemState.Initialized)
                 throw new NoAudioHardwareException("Audio has failed to initialize. Call SoundEffect.Initialize() before sound operation to get more specific errors.");
 
-            _duration = TimeSpan.FromMilliseconds(durationMs);
-
-            // Peek at the format... handle regular PCM data.
-            var format = BitConverter.ToInt16(header, 0);
-            if (format == 1)
+            using (var stream = new MemoryStream(buffer))
             {
-                var channels = BitConverter.ToInt16(header, 2);
-                var sampleRate = BitConverter.ToInt32(header, 4);
-                var bitsPerSample = BitConverter.ToInt16(header, 14);
-                PlatformInitializePcm(buffer, 0, bufferSize, bitsPerSample, sampleRate, (AudioChannels)channels, loopStart, loopLength);
-                return;
+                PlatformLoadAudioStream(stream, out _duration);
             }
-
-            // Everything else is platform specific.
-            PlatformInitializeFormat(header, buffer, bufferSize, loopStart, loopLength);
         }
 
         // Only used from XACT WaveBank.

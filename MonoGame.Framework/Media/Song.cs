@@ -47,7 +47,7 @@ namespace Microsoft.Xna.Framework.Media
 
 #if ANDROID || OPENAL || WEB || IOS
         internal delegate void FinishedPlayingHandler(object sender, EventArgs args);
-#if !DESKTOPGL
+#if !DESKTOPGL || FAUDIO
         event FinishedPlayingHandler DonePlaying;
 #endif
 #endif

@@ -1,5 +1,4 @@
-﻿#if !FAUDIO
-// This code originated from:
+﻿// This code originated from:
 //
 //    http://theinstructionlimit.com/ogg-streaming-using-opentk-and-nvorbis
 //    https://github.com/renaudbedard/nvorbis/
@@ -495,4 +494,3 @@ namespace Microsoft.Xna.Framework.Audio
         }
     }
 }
-#endif

@@ -5,7 +5,6 @@
 using System;
 using System.IO;
 using Microsoft.Xna.Framework.Audio;
-using MonoGame.OpenAL;
 
 namespace Microsoft.Xna.Framework.Media
 {
@@ -55,6 +54,7 @@ namespace Microsoft.Xna.Framework.Media
                 return;
 
             stream.Play();
+
             if (startPosition != null)
                 stream.SeekToPosition((TimeSpan)startPosition);
 
