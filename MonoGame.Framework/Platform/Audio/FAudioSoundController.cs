@@ -207,6 +207,7 @@ namespace Microsoft.Xna.Framework.Audio
             }
             catch
             {
+                Console.WriteLine("FAudio: Failed to initialize.");
                 /* FAudio is missing, bail! */
                 return;
             }
@@ -218,6 +219,7 @@ namespace Microsoft.Xna.Framework.Audio
             );
             if (devices == 0)
             {
+                Console.WriteLine("FAudio: No sound devices.");
                 /* No sound cards, bail! */
                 FAudio.FAudio_Release(ctx);
                 return;
@@ -227,6 +229,7 @@ namespace Microsoft.Xna.Framework.Audio
 
             if (context.Handle == IntPtr.Zero)
             {
+                Console.WriteLine("FAudio: Failed to configure sound device..");
                 /* Soundcard failed to configure, bail! */
                 context.Dispose();
                 return;
