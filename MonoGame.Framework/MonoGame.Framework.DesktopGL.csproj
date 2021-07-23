@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;net452;net5.0</TargetFrameworks>
+    <TargetFrameworks>net5.0</TargetFrameworks>
 	<TargetFramework>net5.0</TargetFramework>
     <DefineConstants>OPENGL;OPENAL;XNADESIGNPROVIDED;LINUX;DESKTOPGL;SUPPORTS_EFX;NETSTANDARD;STBSHARP_INTERNAL;FAUDIO</DefineConstants>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -148,7 +148,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\FAudio\FAudio-CS.csproj" />
+    <ProjectReference Include="..\..\FAudio\FAudio-CS.Core.csproj" />
   </ItemGroup>
 
   <ItemGroup>
