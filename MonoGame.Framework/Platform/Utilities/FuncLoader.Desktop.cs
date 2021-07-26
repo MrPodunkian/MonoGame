@@ -51,10 +51,11 @@ namespace MonoGame.Framework.Utilities
             }
             else
             {
+                /*
                 if (Environment.Is64BitProcess)
                     ret = LoadLibrary(Path.Combine(assemblyLocation, "x64", libname));
                 else
-                    ret = LoadLibrary(Path.Combine(assemblyLocation, "x86", libname));
+                    ret = LoadLibrary(Path.Combine(assemblyLocation, "x86", libname));*/
             }
 
             // Try .NET Core development locations
