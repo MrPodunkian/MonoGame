@@ -311,7 +311,7 @@ namespace Microsoft.Xna.Framework.Audio
                             break;
 
                         case RpcParameter.Pitch:
-                            pitch += value / 1000.0f;
+                            pitch += value / 1200.0f; // 7/26/2021 ARTHUR: Changed this from 1000 to 1200. XAct pitch actually ranges from -1200 to 1200, with 1200 representing a whole octave.
                             break;
 
                         case RpcParameter.ReverbSend:
