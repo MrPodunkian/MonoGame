@@ -180,8 +180,8 @@ namespace Microsoft.Xna.Framework.Audio
                     var panArc = clipReader.ReadUInt16() / 100.0f;
 
                     // Pitch variation range
-                    var minPitch = clipReader.ReadInt16() / 1000.0f;
-                    var maxPitch = clipReader.ReadInt16() / 1000.0f;
+                    var minPitch = clipReader.ReadInt16() / 1200.0f;
+                    var maxPitch = clipReader.ReadInt16() / 1200.0f;
 
                     // Volume variation range
                     var minVolume = XactHelpers.ParseVolumeFromDecibels(clipReader.ReadByte());
@@ -248,8 +248,8 @@ namespace Microsoft.Xna.Framework.Audio
                     var panArc = clipReader.ReadUInt16() / 100.0f;
 
                     // Pitch variation range
-                    var minPitch = clipReader.ReadInt16() / 1000.0f;
-                    var maxPitch = clipReader.ReadInt16() / 1000.0f;
+                    var minPitch = clipReader.ReadInt16() / 1200.0f;
+                    var maxPitch = clipReader.ReadInt16() / 1200.0f;
 
                     // Volume variation range
                     var minVolume = XactHelpers.ParseVolumeFromDecibels(clipReader.ReadByte());
