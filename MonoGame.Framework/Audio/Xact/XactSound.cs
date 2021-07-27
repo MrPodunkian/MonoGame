@@ -51,7 +51,7 @@ namespace Microsoft.Xna.Framework.Audio
 
             _categoryID = soundReader.ReadUInt16();
             _volume = XactHelpers.ParseVolumeFromDecibels(soundReader.ReadByte());
-            _pitch = soundReader.ReadInt16() / 1000.0f;
+            _pitch = soundReader.ReadInt16() / 1200.0f;
             soundReader.ReadByte(); //priority
             soundReader.ReadUInt16(); // filter stuff?
             
