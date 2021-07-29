@@ -15,35 +15,37 @@ namespace Microsoft.Xna.Framework.Audio
     public class Cue : IDisposable
     {
         protected AudioEngine _engine;
-        private string _name;
+        protected string _name;
 
-        private XactSoundBankSound[] _xactSounds;
-        private float[] _probabilities;
-        private int _instanceLimit = 255;
-        private int _limitBehavior = 0;
+        protected XactSoundBankSound[] _xactSounds;
+        protected float[] _probabilities;
+        protected int _instanceLimit = 255;
+        protected int _limitBehavior = 0;
 
         private RpcVariable[] _variables;
 
-        private bool _applied3D;
-        private bool _played;
+        protected bool _applied3D;
+        protected bool _played;
 
-        private XactSoundBankSound _xactSound;
-        private SoundEffectInstance _soundEffect;
-        private AudioCategory _playingCategory;
+        protected XactSoundBankSound _xactSound;
+        protected int _variantIndex = -1;
+
+        protected SoundEffectInstance _soundEffect;
+        protected AudioCategory _playingCategory;
 
         // Properties specific to this Cue, set by the Pitch and Volume getters/setters.
-        private float _cueVolume = 1;
-        private float _cuePitch = 0;
+        protected float _cueVolume = 1;
+        protected float _cuePitch = 0;
 
         // Set by RPC curves.
-        private float _rpcVolume = 1;
-        private float _rpcPitch = 0;
-        private float _rpcReverbMix = 0;
-        private float? _rpcFilterFrequency;
-        private float? _rpcFilterQFactor;
+        protected float _rpcVolume = 1;
+        protected float _rpcPitch = 0;
+        protected float _rpcReverbMix = 0;
+        protected float? _rpcFilterFrequency;
+        protected float? _rpcFilterQFactor;
 
         // Set to 0 when play begins. Less than 0 means stopped.
-        private float _time = -1;
+        protected float _time = -1;
 
         /// <summary>Indicates whether or not the cue is currently paused.</summary>
         /// <remarks>IsPlaying and IsPaused both return true if a cue is paused while playing.</remarks>
@@ -293,7 +295,7 @@ namespace Microsoft.Xna.Framework.Audio
             IsPrepared = false;
         }
 
-        public virtual void PlaySoundInstance(SoundEffectInstance sound_instance)
+        public virtual void PlaySoundInstance(SoundEffectInstance sound_instance, int variant_index = -1)
         {
             if (_soundEffect != null)
             {
@@ -311,6 +313,16 @@ namespace Microsoft.Xna.Framework.Audio
                 _playingCategory.AddSound(this);
 
                 _UpdateSoundParameters();
+            }
+
+            _variantIndex = variant_index;
+        }
+
+        public int VariantIndex
+        {
+            get
+            {
+                return _variantIndex;
             }
         }
 

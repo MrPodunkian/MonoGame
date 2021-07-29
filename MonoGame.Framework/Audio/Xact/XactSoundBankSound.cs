@@ -10,7 +10,7 @@ namespace Microsoft.Xna.Framework.Audio
 {
     public class XactSoundBankSound
     {
-        public bool _complexSound;
+        protected bool _complexSound;
         public XactClip[] _soundClips;
         private readonly int _waveBankIndex;
         private readonly int _trackIndex;

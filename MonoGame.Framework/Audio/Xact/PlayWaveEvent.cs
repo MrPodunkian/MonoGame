@@ -45,9 +45,6 @@ namespace Microsoft.Xna.Framework.Audio
         private readonly Vector2? _volumeVar;
         private readonly Vector2? _pitchVar;
 
-        private int _wavIndex;
-        private int _loopIndex;
-
         private bool _streaming;
 
         public PlayWaveEvent(   XactClip clip, float timeStamp, float randomOffset, SoundBank soundBank,
@@ -64,8 +61,6 @@ namespace Microsoft.Xna.Framework.Audio
             _volumeVar = volumeVar;
             _pitchVar = pitchVar;
             _filterVar = filterVar;
-            _wavIndex = -1;
-            _loopIndex = 0;
 
             _trackVolume = 1.0f;
             _trackPitch = 0;
@@ -90,22 +85,29 @@ namespace Microsoft.Xna.Framework.Audio
         {
             var trackCount = _tracks.Length;
 
+            int variant_index = cue.VariantIndex;
+
+            if (variant_index < 0)
+            {
+                variant_index = 0;
+            }
+
             // Do we need to pick a new wav to play first?
             if (pickNewWav)
             {
                 switch (_variation)
                 {
                     case VariationType.Ordered:
-                        _wavIndex = (_wavIndex + 1) % trackCount;
+                        variant_index = (variant_index + 1) % trackCount;
                         break;
 
                     case VariationType.OrderedFromRandom:
-                        _wavIndex = (_wavIndex + 1) % trackCount;
+                        variant_index = (variant_index + 1) % trackCount;
                         break;
 
                     case VariationType.Random:
                         if (_weights == null || trackCount == 1)
-                            _wavIndex = XactHelpers.Random.Next() % trackCount;
+                            variant_index = XactHelpers.Random.Next() % trackCount;
                         else
                         {
                             var sum = XactHelpers.Random.Next(_totalWeights);
@@ -114,7 +116,7 @@ namespace Microsoft.Xna.Framework.Audio
                                 sum -= _weights[i];
                                 if (sum <= 0)
                                 {
-                                    _wavIndex = i;
+                                    variant_index = i;
                                     break;
                                 }
                             }
@@ -124,35 +126,35 @@ namespace Microsoft.Xna.Framework.Audio
                     case VariationType.RandomNoImmediateRepeats:
                     {
                         if (_weights == null || trackCount == 1)
-                            _wavIndex = XactHelpers.Random.Next() % trackCount;
+                            variant_index = XactHelpers.Random.Next() % trackCount;
                         else
                         {
-                            var last = _wavIndex;
+                            var last = variant_index;
                             var sum = XactHelpers.Random.Next(_totalWeights);
                             for (var i=0; i < trackCount; i++)
                             {
                                 sum -= _weights[i];
                                 if (sum <= 0)
                                 {
-                                    _wavIndex = i;
+                                    variant_index = i;
                                     break;
                                 }
                             }
 
-                            if (_wavIndex == last)
-                                _wavIndex = (_wavIndex + 1) % trackCount;
+                            if (variant_index == last)
+                                variant_index = (variant_index + 1) % trackCount;
                         }
                         break;
                     }
 
                     case VariationType.Shuffle:
                         // TODO: Need some sort of deck implementation.
-                        _wavIndex = XactHelpers.Random.Next() % trackCount;
+                        variant_index = XactHelpers.Random.Next() % trackCount;
                         break;
                 };
             }
 
-            var new_wave = _soundBank.GetSoundEffectInstance(_waveBanks[_wavIndex], _tracks[_wavIndex], out _streaming);
+            var new_wave = _soundBank.GetSoundEffectInstance(_waveBanks[variant_index], _tracks[variant_index], out _streaming);
 
             if (new_wave == null)
             {
@@ -198,7 +200,7 @@ namespace Microsoft.Xna.Framework.Audio
 
             cue.Volume = _trackVolume;
             cue.Pitch = _trackPitch;
-            cue.PlaySoundInstance(new_wave);
+            cue.PlaySoundInstance(new_wave, variant_index);
         }
 
         /*

@@ -27,8 +27,6 @@ namespace Microsoft.Xna.Framework.Audio
         readonly WaveBank[] _waveBanks;
 
         readonly float [] defaultProbability = new float [1] { 1.0f };
-        readonly Dictionary<string, XactSoundBankSound[]> _sounds = new Dictionary<string, XactSoundBankSound[]>();
-        readonly Dictionary<string, float []> _probabilities = new Dictionary<string, float []> ();
 
         readonly Dictionary<string, XactCueDefinition> _cues = new Dictionary<string, XactCueDefinition>();
 
@@ -370,6 +368,11 @@ namespace Microsoft.Xna.Framework.Audio
                 IsInUse = false;
                 EventHelpers.Raise(this, Disposing, EventArgs.Empty);
             }
+        }
+
+        public void AddCue(string cue_name, XactCueDefinition cue_definition)
+        {
+            _cues[cue_name] = cue_definition;
         }
     }
 }
