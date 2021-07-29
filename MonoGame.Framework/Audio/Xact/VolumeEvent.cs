@@ -17,44 +17,10 @@ namespace Microsoft.Xna.Framework.Audio
             _volume = volume;
         }
 
-		public override void Play() 
+		public override void Fire(Cue cue) 
         {
-            _clip.SetVolume(_volume);
+            cue.Volume = _volume;
         }
-
-	    public override void Stop()
-	    {
-	    }
-
-	    public override void Pause() 
-        {
-		}
-
-		public override void Resume()
-		{
-		}
-
-		public override void SetTrackVolume(float volume)
-        {
-		}
-
-	    public override void SetTrackPan(float pan)
-	    {
-	    }
-
-	    public override void SetState(float volume, float pitch, float reverbMix, float? filterFrequency, float? filterQFactor)
-	    {
-	    }
-
-	    public override bool Update(float dt)
-	    {
-	        return false;
-	    }
-
-	    public override void SetFade(float fadeInDuration, float fadeOutDuration)
-        {
-        }
-
     }
 }
 

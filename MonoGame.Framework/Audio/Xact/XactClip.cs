@@ -7,15 +7,13 @@ using System.IO;
 
 namespace Microsoft.Xna.Framework.Audio
 {
-    class XactClip
+    public class XactClip
     {
         private readonly float _defaultVolume;
         private float _volumeScale;
         private float _volume;
 
         private readonly ClipEvent[] _events;
-        private float _time;
-        private int _nextEvent;
 
         internal readonly bool FilterEnabled;
         internal readonly FilterMode FilterMode;
@@ -27,8 +25,6 @@ namespace Microsoft.Xna.Framework.Audio
         public XactClip (SoundBank soundBank, BinaryReader clipReader, bool useReverb)
         {
 #pragma warning disable 0219
-            State = SoundState.Stopped;
-
             UseReverb = useReverb;
 
             var volumeDb = XactHelpers.ParseDecibels(clipReader.ReadByte());
@@ -374,37 +370,29 @@ namespace Microsoft.Xna.Framework.Audio
 #pragma warning restore 0219
         }
 
-        internal void Update(float dt)
+        internal void Update(Cue cue, float old_time, float new_time)
         {
-            if (State != SoundState.Playing)
-                return;
-
-            _time += dt;
-
-            // Play the next event.
-            while (_nextEvent < _events.Length)
+            // Scan the events and trigger any we have just passed.
+            for (int i = 0; i < _events.Length; i++)
             {
-                var evt = _events[_nextEvent];
-                if (_time < evt.TimeStamp)
-                    break;
+                var current_event = _events[i];
 
-                evt.Play();
-                ++_nextEvent;
+                // We just passed a new event.
+
+                if (new_time >= current_event.TimeStamp)
+                {
+                    if (old_time <= current_event.TimeStamp) // This is a freshly passed event -- fire it.
+                    {
+                        current_event.Fire(cue);
+                    }
+                    else
+                    {
+
+                    }
+                }
             }
-
-            // Update all the active events.
-            var isPlaying = _nextEvent < _events.Length;
-            for (var i = 0; i < _nextEvent; i++)
-            {
-                var evt = _events[i];
-                isPlaying |= evt.Update(dt);
-            }
-
-            // Update the state.
-            if (!isPlaying)
-                State = SoundState.Stopped;
         }
-
+/*
         internal void SetFade(float fadeInDuration, float fadeOutDuration)
         {
             foreach (var evt in _events)
@@ -422,41 +410,6 @@ namespace Microsoft.Xna.Framework.Audio
             foreach (var evt in _events)
                 evt.SetState(trackVolume, pitch, reverbMix, filterFrequency, filterQFactor);
         }
-
-        public void Play()
-        {
-            _time = 0.0f;
-            _nextEvent = 0;
-            SetVolume(_defaultVolume);
-            State = SoundState.Playing; 
-            Update(0);
-        }
-
-        public void Resume()
-        {
-            foreach (var evt in _events)
-                evt.Resume();
-
-            State = SoundState.Playing;
-        }
-        
-        public void Stop()
-        {
-            foreach (var evt in _events)
-                evt.Stop();
-
-            State = SoundState.Stopped;
-        }
-        
-        public void Pause()
-        {
-            foreach (var evt in _events)
-                evt.Pause();
-
-            State = SoundState.Paused;
-        }
-
-        public SoundState State { get; private set; }
 
         /// <summary>
         /// Set the combined volume scale from the parent objects.
@@ -489,7 +442,7 @@ namespace Microsoft.Xna.Framework.Audio
         {
             foreach (var evt in _events)
                 evt.SetTrackPan(pan);
-        }
+        }*/
     }
 }
 

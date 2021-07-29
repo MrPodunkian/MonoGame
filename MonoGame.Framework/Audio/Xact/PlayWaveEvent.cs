@@ -48,7 +48,6 @@ namespace Microsoft.Xna.Framework.Audio
         private int _wavIndex;
         private int _loopIndex;
 
-        private SoundEffectInstance _wav;
         private bool _streaming;
 
         public PlayWaveEvent(   XactClip clip, float timeStamp, float randomOffset, SoundBank soundBank,
@@ -82,23 +81,12 @@ namespace Microsoft.Xna.Framework.Audio
             _newWaveOnLoop = newWaveOnLoop;
         }
 
-        public override void Play() 
+        public override void Fire(Cue cue)
         {
-            if (_wav != null)
-            {
-                if (_wav.State != SoundState.Stopped)
-                    _wav.Stop();
-                if (_streaming)
-                    _wav.Dispose();
-				else					
-					_wav._isXAct = false;					
-                _wav = null;
-            }
-
-            Play(true);
+            Play(true, cue);
         }
 
-        private void Play(bool pickNewWav)
+        private void Play(bool pickNewWav, Cue cue)
         {
             var trackCount = _tracks.Length;
 
@@ -164,8 +152,9 @@ namespace Microsoft.Xna.Framework.Audio
                 };
             }
 
-            _wav = _soundBank.GetSoundEffectInstance(_waveBanks[_wavIndex], _tracks[_wavIndex], out _streaming);
-            if (_wav == null)
+            var new_wave = _soundBank.GetSoundEffectInstance(_waveBanks[_wavIndex], _tracks[_wavIndex], out _streaming);
+
+            if (new_wave == null)
             {
                 // We couldn't create a sound effect instance, most likely
                 // because we've reached the sound pool limits.
@@ -192,13 +181,27 @@ namespace Microsoft.Xna.Framework.Audio
             }
  
             // This is a shortcut for infinite looping of a single track.
-            _wav.IsLooped = _loopCount == 255 && trackCount == 1;
+            new_wave.IsLooped = _loopCount == 255 && trackCount == 1;
 
-            // Update all the wave states then play.
-            UpdateState();
-            _wav.Play();
+            new_wave.Volume = _trackVolume;
+            new_wave.Pitch = _trackPitch;
+
+            if (_clip.UseReverb)
+            {
+                new_wave.PlatformSetReverbMix(_clipReverbMix);
+            }
+
+            if (_clip.FilterEnabled)
+            {
+                new_wave.PlatformSetFilter(_clip.FilterMode, _trackFilterQFactor, _trackFilterFrequency);
+            }
+
+            cue.Volume = _trackVolume;
+            cue.Pitch = _trackPitch;
+            cue.PlaySoundInstance(new_wave);
         }
 
+        /*
         public override void Stop()
         {
             if (_wav != null)
@@ -298,6 +301,7 @@ namespace Microsoft.Xna.Framework.Audio
 
             return _wav != null;
         }
+        */
     }
 }
 

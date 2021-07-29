@@ -14,17 +14,36 @@ namespace Microsoft.Xna.Framework.Audio
     /// </remarks>
     public class Cue : IDisposable
     {
-        private readonly AudioEngine _engine;
-        private readonly string _name;
-        private readonly XactSound[] _sounds;
-        private readonly float[] _probs;
+        protected AudioEngine _engine;
+        private string _name;
 
-        private readonly RpcVariable[] _variables;
+        private XactSoundBankSound[] _xactSounds;
+        private float[] _probabilities;
+        private int _instanceLimit = 255;
+        private int _limitBehavior = 0;
 
-        private XactSound _curSound;
+        private RpcVariable[] _variables;
 
         private bool _applied3D;
         private bool _played;
+
+        private XactSoundBankSound _xactSound;
+        private SoundEffectInstance _soundEffect;
+        private AudioCategory _playingCategory;
+
+        // Properties specific to this Cue, set by the Pitch and Volume getters/setters.
+        private float _cueVolume = 1;
+        private float _cuePitch = 0;
+
+        // Set by RPC curves.
+        private float _rpcVolume = 1;
+        private float _rpcPitch = 0;
+        private float _rpcReverbMix = 0;
+        private float? _rpcFilterFrequency;
+        private float? _rpcFilterQFactor;
+
+        // Set to 0 when play begins. Less than 0 means stopped.
+        private float _time = -1;
 
         /// <summary>Indicates whether or not the cue is currently paused.</summary>
         /// <remarks>IsPlaying and IsPaused both return true if a cue is paused while playing.</remarks>
@@ -32,10 +51,42 @@ namespace Microsoft.Xna.Framework.Audio
         {
             get 
             {
-                if (_curSound != null)
-                    return _curSound.IsPaused;
+                if (_soundEffect != null)
+                    return _soundEffect.State == SoundState.Paused;
 
                 return false;
+            }
+        }
+
+        public float Pitch
+        {
+            get
+            {
+                return _cuePitch;
+            }
+            set
+            {
+                if (_cuePitch != value)
+                {
+                    _cuePitch = value;
+                    _UpdateSoundParameters();
+                }
+            }
+        }
+
+        public float Volume
+        {
+            get
+            {
+                return _cueVolume;
+            }
+            set
+            {
+                if (_cueVolume != value)
+                {
+                    _cueVolume = value;
+                    _UpdateSoundParameters();
+                }
             }
         }
 
@@ -45,10 +96,7 @@ namespace Microsoft.Xna.Framework.Audio
         {
             get 
             {
-                if (_curSound != null)
-                    return _curSound.Playing;
-
-                return false;
+                return _time >= 0;
             }
         }
 
@@ -57,8 +105,8 @@ namespace Microsoft.Xna.Framework.Audio
         {
             get 
             {
-                if (_curSound != null)
-                    return _curSound.Stopped;
+                if (_soundEffect != null)
+                    return _soundEffect.State == SoundState.Stopped;
 
                 return !IsDisposed && !IsPrepared;
             }
@@ -88,24 +136,32 @@ namespace Microsoft.Xna.Framework.Audio
         {
             get { return _name; }
         }
-        
-        internal Cue(AudioEngine engine, string cuename, XactSound sound)
+
+        internal Cue(AudioEngine engine, XactCueDefinition cue)
+        {
+            _engine = engine;
+            _name = cue.name;
+            _xactSounds = cue.sounds;
+            _probabilities = cue.probabilities;
+            _instanceLimit = cue.instanceLimit;
+            _limitBehavior = cue.limitBehavior;
+            _variables = engine.CreateCueVariables();
+        }
+
+        internal Cue(AudioEngine engine, string cuename, XactSoundBankSound sound)
         {
             _engine = engine;
             _name = cuename;
-            _sounds = new XactSound[1];
-            _sounds[0] = sound;
-            _probs = new float[1];
-            _probs[0] = 1.0f;
+            _xactSound = sound;
             _variables = engine.CreateCueVariables();
         }
         
-        internal Cue(AudioEngine engine, string cuename, XactSound[] sounds, float[] probs)
+        internal Cue(AudioEngine engine, string cuename, XactSoundBankSound[] sounds, float[] probs)
         {
             _engine = engine;
             _name = cuename;
-            _sounds = sounds;
-            _probs = probs;
+            _xactSounds = sounds;
+            _probabilities = probs;
             _variables = engine.CreateCueVariables();
         }
 
@@ -114,7 +170,7 @@ namespace Microsoft.Xna.Framework.Audio
             IsDisposed = false;
             IsCreated = false;
             IsPrepared = true;
-            _curSound = null;
+            _xactSound = null;
         }
 
         /// <summary>Pauses playback.</summary>
@@ -122,8 +178,10 @@ namespace Microsoft.Xna.Framework.Audio
         {
             lock (_engine.UpdateLock)
             {
-                if (_curSound != null)
-                    _curSound.Pause();
+                if (_soundEffect != null)
+                {
+                    _soundEffect.Pause();
+                }
             }
         }
 
@@ -133,20 +191,127 @@ namespace Microsoft.Xna.Framework.Audio
         {
             lock (_engine.UpdateLock)
             {
-                if (!_engine.ActiveCues.Contains(this))
-                    _engine.ActiveCues.Add(this);
+                // If this sound has an instance limit, perform the limiting.
+                if (_instanceLimit < 255 && _instanceLimit > 0)
+                {
+                    Cue oldest_cue = null;
 
-                //TODO: Probabilities
-                var index = XactHelpers.Random.Next(_sounds.Length);
-                _curSound = _sounds[index];
+                    int current_count = 0;
+
+                    foreach (var cue in _engine.ActiveCues)
+                    {
+                        if (cue.Name == Name)
+                        {
+                            if (oldest_cue == null)
+                            {
+                                oldest_cue = cue;
+                            }
+
+                            current_count++;
+
+                            if (current_count >= _instanceLimit)
+                            {
+                                break;
+                            }
+                        }
+                    }
+
+                    if (current_count >= _instanceLimit)
+                    {
+                        if (_limitBehavior == 0) // Fail
+                        {
+                            return;
+                        }
+                        else if (_limitBehavior == 1) // Queue
+                        {
+                            // Not implemented -- just kill the oldest instance for now.
+                            oldest_cue.Stop(AudioStopOptions.Immediate);
+                        }
+                        else if (_limitBehavior == 2) // Replace oldest
+                        {
+                            oldest_cue.Stop(AudioStopOptions.Immediate);
+                        }
+                        else if (_limitBehavior == 3) // Replace quietest
+                        {
+                            // Not implemented -- just kill the oldest instance for now.
+                            oldest_cue.Stop(AudioStopOptions.Immediate);
+                        }
+                        else if (_limitBehavior == 4) // Replace lowest priority
+                        {
+                            // Not implemented -- just kill the oldest instance for now.
+                            oldest_cue.Stop(AudioStopOptions.Immediate);
+                        }
+                    }
+                }
+
+                if (!_engine.ActiveCues.Contains(this))
+                {
+                    _engine.ActiveCues.Add(this);
+                }
+
+                if (_xactSounds != null)
+                {
+                    //TODO: Probabilities
+                    var index = XactHelpers.Random.Next(_xactSounds.Length);
+                    _xactSound = _xactSounds[index];
+
+                    if (_xactSound == null)
+                    {
+                        return;
+                    }
+                }
 
                 var volume = UpdateRpcCurves();
 
-                _curSound.Play(volume, _engine);
+                var category = _engine.Categories[_xactSound._categoryID];
+
+                var instance_count = category.GetPlayingInstanceCount();
+
+                if (instance_count >= category.maxInstances)
+                {
+                    var previous_cue = category.GetOldestInstance();
+                    
+                    if (previous_cue != null)
+                    {
+                        //prevSound.SetFade(0.0f, category.fadeOut);
+                        previous_cue.Stop(AudioStopOptions.Immediate);
+                        //SetFade(category.fadeIn, 0.0f);
+                    }
+                }
+
+                var wave = _xactSound.GetSimpleSoundInstance();
+
+                _time = 0;
+
+                if (wave != null)
+                {
+                    PlaySoundInstance(wave);
+                }
             }
 
             _played = true;
             IsPrepared = false;
+        }
+
+        public virtual void PlaySoundInstance(SoundEffectInstance sound_instance)
+        {
+            if (_soundEffect != null)
+            {
+                _soundEffect.Stop(true);
+                _soundEffect = null;
+            }
+
+            _soundEffect = sound_instance;
+
+            if (_soundEffect != null)
+            {
+                _soundEffect.Play();
+
+                _playingCategory = _engine.Categories[_xactSound._categoryID];
+                _playingCategory.AddSound(this);
+
+                _UpdateSoundParameters();
+            }
         }
 
         /// <summary>Resumes playback of a paused Cue.</summary>
@@ -154,8 +319,8 @@ namespace Microsoft.Xna.Framework.Audio
         {
             lock (_engine.UpdateLock)
             {
-                if (_curSound != null)
-                    _curSound.Resume();
+                if (_soundEffect != null)
+                    _soundEffect.Resume();
             }
         }
 
@@ -165,10 +330,21 @@ namespace Microsoft.Xna.Framework.Audio
         {
             lock (_engine.UpdateLock)
             {
+                _time = -1;
+
                 _engine.ActiveCues.Remove(this);
 
-                if (_curSound != null)
-                    _curSound.Stop(options);
+                if (_playingCategory != null)
+                {
+                    _playingCategory.RemoveSound(this);
+                    _playingCategory = null;
+                }
+
+                if (_soundEffect != null)
+                {
+                    _soundEffect.Stop(options == AudioStopOptions.Immediate);
+                    _soundEffect = null;
+                }
             }
 
             IsPrepared = false;
@@ -258,8 +434,10 @@ namespace Microsoft.Xna.Framework.Audio
                 var angle = MathHelper.ToDegrees((float)Math.Acos(slope));
                 var j = FindVariable("OrientationAngle");
                 _variables[j].SetValue(angle);
-                if (_curSound != null)
-                    _curSound.SetCuePan(Vector3.Dot(direction, right));
+                if (_xactSound != null)
+                {
+                    //_curSound.SetCuePan(Vector3.Dot(direction, right));
+                }
 
                 // Calculate doppler effect.
                 var relativeVelocity = emitter.Velocity - listener.Velocity;
@@ -271,12 +449,36 @@ namespace Microsoft.Xna.Framework.Audio
 
         internal void Update(float dt)
         {
-            if (_curSound == null)
+            if (_xactSound == null)
+            {
                 return;
+            }
 
-            _curSound.Update(dt);
+            if (_time < 0)
+            {
+                return;
+            }
+
+            if (_soundEffect == null || _soundEffect.State == SoundState.Playing)
+            {
+                float old_time = _time;
+                _time += dt;
+
+                if (_xactSound._soundClips != null)
+                {
+                    foreach (var clip in _xactSound._soundClips)
+                    {
+                        clip.Update(this, old_time, _time);
+                    }
+                }
+            }
 
             UpdateRpcCurves();
+
+            if (_soundEffect != null && _soundEffect.State == SoundState.Stopped)
+            {
+                Stop(AudioStopOptions.Immediate);
+            }
         }
 
         private float UpdateRpcCurves()
@@ -284,7 +486,7 @@ namespace Microsoft.Xna.Framework.Audio
             var volume = 1.0f;
 
             // Evaluate the runtime parameter controls.
-            var rpcCurves = _curSound.RpcCurves;
+            var rpcCurves = _xactSound.RpcCurves;
             if (rpcCurves.Length > 0)
             {
                 var pitch = 0.0f;
@@ -335,10 +537,41 @@ namespace Microsoft.Xna.Framework.Audio
                 if (volume < 0.0f)
                     volume = 0.0f;
 
-                _curSound.UpdateState(_engine, volume, pitch, reverbMix, filterFrequency, filterQFactor);
+                _rpcVolume = volume;
+                _rpcPitch = pitch;
+                _rpcReverbMix = reverbMix;
+                _rpcFilterFrequency = filterFrequency;
+                _rpcFilterQFactor = filterQFactor;
+
+                _UpdateSoundParameters();
             }
 
             return volume;
+        }
+
+        public virtual void _UpdateSoundParameters()
+        {
+            if (_soundEffect == null)
+            {
+                return;
+            }
+
+            _soundEffect.Volume = _cueVolume * _playingCategory._volume * _rpcVolume * _xactSound._volume;
+            _soundEffect.Pitch = _rpcPitch + _cuePitch + _xactSound._pitch;
+
+            if (_xactSound._useReverb)
+            {
+                _soundEffect.PlatformSetReverbMix(_rpcReverbMix);
+            }
+
+            // The RPC filter overrides the randomized track filter.
+
+            if (_rpcFilterQFactor.HasValue || _rpcFilterFrequency.HasValue)
+            {
+                _soundEffect.PlatformSetFilter(_soundEffect._filterMode,
+                    _rpcFilterQFactor.HasValue ? _rpcFilterQFactor.Value : _soundEffect._filterQ,
+                    _rpcFilterFrequency.HasValue ? _rpcFilterFrequency.Value : _soundEffect._filterFrequency);
+            }
         }
         
         /// <summary>
@@ -352,7 +585,7 @@ namespace Microsoft.Xna.Framework.Audio
         public bool IsDisposed { get; internal set; }
 
         /// <summary>
-        /// Disposes the Cue.
+        /// Disposes the Cue
         /// </summary>
         public void Dispose()
         {
