@@ -238,7 +238,23 @@ namespace Microsoft.Xna.Framework.Audio
             }
         }
 
-        internal SoundEffectInstance GetSoundEffectInstance(int waveBankIndex, int trackIndex, out bool streaming)
+        public SoundEffect GetSoundEffect(int waveBankIndex, int trackIndex)
+        {
+            var waveBank = _waveBanks[waveBankIndex];
+
+            // If the wave bank has not been resolved then do so now.
+            if (waveBank == null)
+            {
+                var name = _waveBankNames[waveBankIndex];
+                if (!_audioengine.Wavebanks.TryGetValue(name, out waveBank))
+                    throw new Exception("The wave bank '" + name + "' was not found!");
+                _waveBanks[waveBankIndex] = waveBank;
+            }
+
+            return waveBank.GetSoundEffect(trackIndex);
+        }
+
+        public SoundEffectInstance GetSoundEffectInstance(int waveBankIndex, int trackIndex, out bool streaming)
         {
             var waveBank = _waveBanks[waveBankIndex];
 

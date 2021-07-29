@@ -358,7 +358,12 @@ namespace Microsoft.Xna.Framework.Audio
         {
         }
 
-        internal SoundEffectInstance GetSoundEffectInstance(int trackIndex, out bool streaming)
+        public SoundEffect GetSoundEffect(int trackIndex)
+        {
+            return _sounds[trackIndex];
+        }
+
+        public SoundEffectInstance GetSoundEffectInstance(int trackIndex, out bool streaming)
         {
             if (_streaming)
             {

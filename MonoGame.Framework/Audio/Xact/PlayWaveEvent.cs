@@ -3,6 +3,7 @@
 // file 'LICENSE.txt', which is part of this source code package.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 
 namespace Microsoft.Xna.Framework.Audio
@@ -26,20 +27,16 @@ namespace Microsoft.Xna.Framework.Audio
 
         private readonly bool _newWaveOnLoop;
 
-        private readonly int[] _tracks;
-        private readonly int[] _waveBanks;
+        protected List<PlayWaveVariant> _variants;
         
-        private readonly byte[] _weights;
-        private readonly int _totalWeights;
+        protected int _totalWeights;
 
-        private float _trackVolume;
-        private float _trackPitch;
-        private float _trackFilterFrequency;
-        private float _trackFilterQFactor;
+        protected float _trackVolume;
+        protected float _trackPitch;
+        protected float _trackFilterFrequency;
+        protected float _trackFilterQFactor;
 
-        private float _clipVolume;
-        private float _clipPitch;
-        private float _clipReverbMix;
+        protected float _clipReverbMix;
 
         private readonly Vector4? _filterVar;
         private readonly Vector2? _volumeVar;
@@ -54,10 +51,31 @@ namespace Microsoft.Xna.Framework.Audio
             : base(clip, timeStamp, randomOffset)
         {
             _soundBank = soundBank;
-            _waveBanks = waveBanks;
-            _tracks = tracks;
-            _weights = weights;
-            _totalWeights = totalWeights;
+
+            _variants = new List<PlayWaveVariant>();
+            _totalWeights = 0;
+
+            for (int i = 0; i < tracks.Length; i++)
+            {
+                PlayWaveVariant variant = new PlayWaveVariant();
+                variant.soundBank = _soundBank;
+                variant.waveBank = waveBanks[i];
+                variant.track = tracks[i];
+
+                if (weights != null)
+                {
+                    variant.weight = weights[i];
+                }
+                else
+                {
+                    variant.weight = 1;
+                }
+
+                _totalWeights += variant.weight;
+
+                _variants.Add(variant);
+            }
+
             _volumeVar = volumeVar;
             _pitchVar = pitchVar;
             _filterVar = filterVar;
@@ -67,8 +85,6 @@ namespace Microsoft.Xna.Framework.Audio
             _trackFilterFrequency = 0;
             _trackFilterQFactor = 0;
 
-            _clipVolume = 1.0f;
-            _clipPitch = 0;
             _clipReverbMix = 0;
 
             _variation = variation;
@@ -83,7 +99,7 @@ namespace Microsoft.Xna.Framework.Audio
 
         private void Play(bool pickNewWav, Cue cue)
         {
-            var trackCount = _tracks.Length;
+            var trackCount = _variants.Count;
 
             int variant_index = cue.VariantIndex;
 
@@ -106,14 +122,11 @@ namespace Microsoft.Xna.Framework.Audio
                         break;
 
                     case VariationType.Random:
-                        if (_weights == null || trackCount == 1)
-                            variant_index = XactHelpers.Random.Next() % trackCount;
-                        else
                         {
                             var sum = XactHelpers.Random.Next(_totalWeights);
                             for (var i=0; i < trackCount; i++)
                             {
-                                sum -= _weights[i];
+                                sum -= _variants[i].weight;
                                 if (sum <= 0)
                                 {
                                     variant_index = i;
@@ -125,25 +138,20 @@ namespace Microsoft.Xna.Framework.Audio
 
                     case VariationType.RandomNoImmediateRepeats:
                     {
-                        if (_weights == null || trackCount == 1)
-                            variant_index = XactHelpers.Random.Next() % trackCount;
-                        else
+                        var last = variant_index;
+                        var sum = XactHelpers.Random.Next(_totalWeights);
+                        for (var i=0; i < trackCount; i++)
                         {
-                            var last = variant_index;
-                            var sum = XactHelpers.Random.Next(_totalWeights);
-                            for (var i=0; i < trackCount; i++)
+                            sum -= _variants[i].weight;
+                            if (sum <= 0)
                             {
-                                sum -= _weights[i];
-                                if (sum <= 0)
-                                {
-                                    variant_index = i;
-                                    break;
-                                }
+                                variant_index = i;
+                                break;
                             }
-
-                            if (variant_index == last)
-                                variant_index = (variant_index + 1) % trackCount;
                         }
+
+                        if (variant_index == last)
+                            variant_index = (variant_index + 1) % trackCount;
                         break;
                     }
 
@@ -154,7 +162,7 @@ namespace Microsoft.Xna.Framework.Audio
                 };
             }
 
-            var new_wave = _soundBank.GetSoundEffectInstance(_waveBanks[variant_index], _tracks[variant_index], out _streaming);
+            SoundEffectInstance new_wave = _variants[variant_index].GetSoundEffectInstance();
 
             if (new_wave == null)
             {
@@ -162,6 +170,8 @@ namespace Microsoft.Xna.Framework.Audio
                 // because we've reached the sound pool limits.
                 return;
             }
+
+            _trackVolume = _clip.DefaultVolume;
 
             // Do all the randoms before we play.
             if (_volumeVar.HasValue)
@@ -183,6 +193,7 @@ namespace Microsoft.Xna.Framework.Audio
             }
  
             // This is a shortcut for infinite looping of a single track.
+            // NOTE 7/29/2021: Non-infinite loops are not supported currently.
             new_wave.IsLooped = _loopCount == 255 && trackCount == 1;
 
             new_wave.Volume = _trackVolume;
@@ -203,107 +214,61 @@ namespace Microsoft.Xna.Framework.Audio
             cue.PlaySoundInstance(new_wave, variant_index);
         }
 
-        /*
-        public override void Stop()
+        public void SetSoundEffects(List<SoundEffect> sounds)
         {
-            if (_wav != null)
+            _variants.Clear();
+            _totalWeights = 0;
+
+            foreach (var sound in sounds)
             {
-                _wav.Stop();
-                if (_streaming)
-                    _wav.Dispose();
-				else
-                	_wav._isXAct = false;				
-                _wav = null;
+                PlayWaveVariant variant = new PlayWaveVariant();
+                variant.overrideSoundEffect = sound;
+                _totalWeights += variant.weight;
+
+                _variants.Add(variant);
             }
-            _loopIndex = 0;
         }
+    }
 
-        public override void Pause() 
+    public class PlayWaveVariant
+    {
+        public SoundEffect overrideSoundEffect = null;
+        public SoundBank soundBank = null;
+        public int waveBank = -1;
+        public int track = -1;
+
+        public byte weight = 1;
+
+        public SoundEffect GetSoundEffect()
         {
-            if (_wav != null)
-                _wav.Pause();
-        }
-
-        public override void Resume()
-        {
-            if (_wav != null && _wav.State == SoundState.Paused)
-                _wav.Resume();
-        }
-
-        public override void SetTrackVolume(float volume)
-        {
-            _clipVolume = volume;
-            if (_wav != null)
-                _wav.Volume = _trackVolume * _clipVolume;
-        }
-
-        public override void SetTrackPan(float pan)
-        {
-            if (_wav != null)
-                _wav.Pan = pan;
-        }
-
-        public override void SetState(float volume, float pitch, float reverbMix, float? filterFrequency, float? filterQFactor)
-        {
-            _clipVolume = volume;
-            _clipPitch = pitch;
-            _clipReverbMix = reverbMix;
-
-            // The RPC filter overrides the randomized track filter.
-            if (filterFrequency.HasValue)
-                _trackFilterFrequency = filterFrequency.Value;
-            if (filterQFactor.HasValue)
-                _trackFilterQFactor = filterQFactor.Value;
-
-            if (_wav != null)
-                UpdateState();
-        }
-
-        private void UpdateState()
-        {
-            _wav.Volume = _trackVolume * _clipVolume;
-            _wav.Pitch = _trackPitch + _clipPitch;
-
-            if (_clip.UseReverb)
-                _wav.PlatformSetReverbMix(_clipReverbMix);
-            if (_clip.FilterEnabled)
-                _wav.PlatformSetFilter(_clip.FilterMode, _trackFilterQFactor, _trackFilterFrequency);
-        }
-
-        public override void SetFade(float fadeInDuration, float fadeOutDuration)
-        {
-            // TODO
-        }
-
-        public override bool Update(float dt)
-        {
-            if (_wav != null && _wav.State == SoundState.Stopped)
+            if (overrideSoundEffect != null)
             {
-                // If we're not looping or reached our loop 
-                // limit then we can stop.
-                if (_loopCount == 0 || _loopIndex >= _loopCount)
-                {
-                    if (_streaming)
-                        _wav.Dispose();
-					else
-	                    _wav._isXAct = false;						
-                    _wav = null;
-                    _loopIndex = 0;
-                }
-                else
-                {
-                    // Increment the loop count if it isn't infinite.
-                    if (_loopCount != 255)
-                        ++_loopIndex;
-
-                    // Play the next track.
-                    Play(_newWaveOnLoop);
-                }
+                return overrideSoundEffect;
             }
 
-            return _wav != null;
+            if (soundBank != null)
+            {
+                return soundBank.GetSoundEffect(waveBank, track);
+            }
+
+            return null;
         }
-        */
+
+        public SoundEffectInstance GetSoundEffectInstance()
+        {
+            if (overrideSoundEffect != null)
+            {
+                return overrideSoundEffect.GetPooledInstance(true);
+            }
+
+            if (soundBank != null)
+            {
+                bool streaming;
+                return soundBank.GetSoundEffectInstance(waveBank, track, out streaming);
+            }
+
+            return null;
+        }
     }
 }
 

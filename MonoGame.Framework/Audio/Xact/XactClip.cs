@@ -9,16 +9,14 @@ namespace Microsoft.Xna.Framework.Audio
 {
     public class XactClip
     {
-        private readonly float _defaultVolume;
-        private float _volumeScale;
-        private float _volume;
+        public float DefaultVolume;
 
         private readonly ClipEvent[] _events;
 
-        internal readonly bool FilterEnabled;
-        internal readonly FilterMode FilterMode;
-        internal readonly float FilterQ;
-        internal readonly ushort FilterFrequency;
+        public bool FilterEnabled;
+        public FilterMode FilterMode;
+        public float FilterQ;
+        public ushort FilterFrequency;
 
         internal readonly bool UseReverb;
 
@@ -27,24 +25,25 @@ namespace Microsoft.Xna.Framework.Audio
 #pragma warning disable 0219
             UseReverb = useReverb;
 
-            var volumeDb = XactHelpers.ParseDecibels(clipReader.ReadByte());
-            _defaultVolume = XactHelpers.ParseVolumeFromDecibels(volumeDb);
-            var clipOffset = clipReader.ReadUInt32();
+            var volume_db = XactHelpers.ParseDecibels(clipReader.ReadByte());
+            DefaultVolume = XactHelpers.ParseVolumeFromDecibels(volume_db);
+
+            var clip_offset = clipReader.ReadUInt32();
 
             // Read the filter info.
-            var filterQAndFlags = clipReader.ReadUInt16();
-            FilterEnabled = (filterQAndFlags & 1) == 1;
-            FilterMode = (FilterMode)((filterQAndFlags >> 1) & 3);
-            FilterQ = (filterQAndFlags >> 3) * 0.01f;
+            var filter_q_and_flags = clipReader.ReadUInt16();
+            FilterEnabled = (filter_q_and_flags & 1) == 1;
+            FilterMode = (FilterMode)((filter_q_and_flags >> 1) & 3);
+            FilterQ = (filter_q_and_flags >> 3) * 0.01f;
             FilterFrequency = clipReader.ReadUInt16();
 
-            var oldPosition = clipReader.BaseStream.Position;
-            clipReader.BaseStream.Seek(clipOffset, SeekOrigin.Begin);
+            var old_position = clipReader.BaseStream.Position;
+            clipReader.BaseStream.Seek(clip_offset, SeekOrigin.Begin);
             
-            var numEvents = clipReader.ReadByte();
-            _events = new ClipEvent[numEvents];
+            var num_events = clipReader.ReadByte();
+            _events = new ClipEvent[num_events];
             
-            for (var i=0; i<numEvents; i++) 
+            for (var i=0; i<num_events; i++) 
             {
                 var eventInfo = clipReader.ReadUInt32();
                 var randomOffset = clipReader.ReadUInt16() * 0.001f;
@@ -341,7 +340,7 @@ namespace Microsoft.Xna.Framework.Audio
 
                     // The replacement or additive volume.
                     var decibles = clipReader.ReadSingle() / 100.0f;
-                    var volume = XactHelpers.ParseVolumeFromDecibels(decibles + (isAdd ? volumeDb : 0));
+                    var volume = XactHelpers.ParseVolumeFromDecibels(decibles + (isAdd ? volume_db : 0));
 
                     // Unknown!
                     clipReader.ReadBytes(9);
@@ -366,7 +365,7 @@ namespace Microsoft.Xna.Framework.Audio
                 }
             }
             
-            clipReader.BaseStream.Seek (oldPosition, SeekOrigin.Begin);
+            clipReader.BaseStream.Seek (old_position, SeekOrigin.Begin);
 #pragma warning restore 0219
         }
 
@@ -392,57 +391,6 @@ namespace Microsoft.Xna.Framework.Audio
                 }
             }
         }
-/*
-        internal void SetFade(float fadeInDuration, float fadeOutDuration)
-        {
-            foreach (var evt in _events)
-            {
-                if (evt is PlayWaveEvent)
-                    evt.SetFade(fadeInDuration, fadeOutDuration);
-            }
-        }
-        
-        internal void UpdateState(float volume, float pitch, float reverbMix, float? filterFrequency, float? filterQFactor)
-        {
-            _volumeScale = volume;
-            var trackVolume = _volume * _volumeScale;
-
-            foreach (var evt in _events)
-                evt.SetState(trackVolume, pitch, reverbMix, filterFrequency, filterQFactor);
-        }
-
-        /// <summary>
-        /// Set the combined volume scale from the parent objects.
-        /// </summary>
-        /// <param name="volume">The volume scale.</param>
-        public void SetVolumeScale(float volume)
-        {
-            _volumeScale = volume;
-            UpdateVolumes();
-        }
-
-        /// <summary>
-        /// Set the volume for the clip.
-        /// </summary>
-        /// <param name="volume">The volume level.</param>
-        public void SetVolume(float volume)
-        {
-            _volume = volume;
-            UpdateVolumes();
-        }
-
-        private void UpdateVolumes()
-        {
-            var volume = _volume * _volumeScale;
-            foreach (var evt in _events)
-                evt.SetTrackVolume(volume);
-        }
-
-        public void SetPan(float pan)
-        {
-            foreach (var evt in _events)
-                evt.SetTrackPan(pan);
-        }*/
     }
 }
 
