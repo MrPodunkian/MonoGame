@@ -85,7 +85,14 @@ namespace Microsoft.Xna.Framework.Audio
             _trackFilterFrequency = 0;
             _trackFilterQFactor = 0;
 
-            _clipReverbMix = 0;
+            if (_clip.UseReverb)
+            {
+                _clipReverbMix = 1.0F;
+            }
+            else
+            {
+                _clipReverbMix = 0;
+            }
 
             _variation = variation;
             _loopCount = loopCount;

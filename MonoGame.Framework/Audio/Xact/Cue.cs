@@ -40,7 +40,7 @@ namespace Microsoft.Xna.Framework.Audio
         // Set by RPC curves.
         protected float _rpcVolume = 1;
         protected float _rpcPitch = 0;
-        protected float _rpcReverbMix = 0;
+        protected float _rpcReverbMix = 1.0F;
         protected float? _rpcFilterFrequency;
         protected float? _rpcFilterQFactor;
 
