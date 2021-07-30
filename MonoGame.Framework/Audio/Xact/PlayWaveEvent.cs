@@ -8,7 +8,7 @@ using System.IO;
 
 namespace Microsoft.Xna.Framework.Audio
 {
-    enum VariationType
+    public enum VariationType
     {
         Ordered,
         OrderedFromRandom,
@@ -17,15 +17,15 @@ namespace Microsoft.Xna.Framework.Audio
         Shuffle
     };
 
-    class PlayWaveEvent : ClipEvent
+    public class PlayWaveEvent : ClipEvent
     {
-        private readonly SoundBank _soundBank;
+        private SoundBank _soundBank;
 
-        private readonly VariationType _variation;
+        public VariationType variationType;
 
-        private readonly int _loopCount;
+        private int _loopCount;
 
-        private readonly bool _newWaveOnLoop;
+        private bool _newWaveOnLoop;
 
         protected List<PlayWaveVariant> _variants;
         
@@ -38,11 +38,47 @@ namespace Microsoft.Xna.Framework.Audio
 
         protected float _clipReverbMix;
 
-        private readonly Vector4? _filterVar;
-        private readonly Vector2? _volumeVar;
-        private readonly Vector2? _pitchVar;
+        public readonly Vector4? randomFilterRange;
+        public readonly Vector2? randomVolumeRange;
+        public readonly Vector2? randomPitchRange;
 
-        private bool _streaming;
+        public bool Loop
+        {
+            get
+            {
+                return _loopCount == 255;
+            }
+            set
+            {
+                if (value)
+                {
+                    _loopCount = 255;
+                }
+                else
+                {
+                    _loopCount = 0;
+                }
+            }
+        }
+
+       private bool _streaming;
+
+        public PlayWaveEvent(XactClip clip, List<PlayWaveVariant> variants, float time_stamp = 0, float random_offset = 0, bool loop = false) : base(clip, time_stamp, random_offset)
+        {
+            _variants = variants;
+
+            if (loop)
+            {
+                _loopCount = 255;
+            }
+
+            _totalWeights = 0;
+            for (int i = 0; i < _variants.Count; i++)
+            {
+                var variant = variants[i];
+                _totalWeights += variant.weight;
+            }
+        }
 
         public PlayWaveEvent(   XactClip clip, float timeStamp, float randomOffset, SoundBank soundBank,
                                 int[] waveBanks, int[] tracks, byte[] weights, int totalWeights,
@@ -76,9 +112,9 @@ namespace Microsoft.Xna.Framework.Audio
                 _variants.Add(variant);
             }
 
-            _volumeVar = volumeVar;
-            _pitchVar = pitchVar;
-            _filterVar = filterVar;
+            randomVolumeRange = volumeVar;
+            randomPitchRange = pitchVar;
+            randomFilterRange = filterVar;
 
             _trackVolume = 1.0f;
             _trackPitch = 0;
@@ -94,7 +130,7 @@ namespace Microsoft.Xna.Framework.Audio
                 _clipReverbMix = 0;
             }
 
-            _variation = variation;
+            variationType = variation;
             _loopCount = loopCount;
             _newWaveOnLoop = newWaveOnLoop;
         }
@@ -118,7 +154,7 @@ namespace Microsoft.Xna.Framework.Audio
             // Do we need to pick a new wav to play first?
             if (pickNewWav)
             {
-                switch (_variation)
+                switch (variationType)
                 {
                     case VariationType.Ordered:
                         variant_index = (variant_index + 1) % trackCount;
@@ -130,7 +166,7 @@ namespace Microsoft.Xna.Framework.Audio
 
                     case VariationType.Random:
                         {
-                            var sum = XactHelpers.Random.Next(_totalWeights);
+                            var sum = XactHelpers.Random.Next(_totalWeights + 1); // 7/30/2021 ARTHUR: This is an integer based Random, so we need to +1 to make it inclusive.
                             for (var i=0; i < trackCount; i++)
                             {
                                 sum -= _variants[i].weight;
@@ -146,7 +182,7 @@ namespace Microsoft.Xna.Framework.Audio
                     case VariationType.RandomNoImmediateRepeats:
                     {
                         var last = variant_index;
-                        var sum = XactHelpers.Random.Next(_totalWeights);
+                        var sum = XactHelpers.Random.Next(_totalWeights + 1);
                         for (var i=0; i < trackCount; i++)
                         {
                             sum -= _variants[i].weight;
@@ -181,16 +217,16 @@ namespace Microsoft.Xna.Framework.Audio
             _trackVolume = _clip.DefaultVolume;
 
             // Do all the randoms before we play.
-            if (_volumeVar.HasValue)
-                _trackVolume = _volumeVar.Value.X + ((float)XactHelpers.Random.NextDouble() * _volumeVar.Value.Y);
-            if (_pitchVar.HasValue)
-                _trackPitch = _pitchVar.Value.X + ((float)XactHelpers.Random.NextDouble() * _pitchVar.Value.Y);
+            if (randomVolumeRange.HasValue)
+                _trackVolume = randomVolumeRange.Value.X + ((float)XactHelpers.Random.NextDouble() * randomVolumeRange.Value.Y);
+            if (randomPitchRange.HasValue)
+                _trackPitch = randomPitchRange.Value.X + ((float)XactHelpers.Random.NextDouble() * randomPitchRange.Value.Y);
             if (_clip.FilterEnabled)
             {
-                if (_filterVar.HasValue)
+                if (randomFilterRange.HasValue)
                 {
-                    _trackFilterFrequency = _filterVar.Value.X + ((float)XactHelpers.Random.NextDouble() * _filterVar.Value.Y);
-                    _trackFilterQFactor = _filterVar.Value.Z + ((float)XactHelpers.Random.NextDouble() * _filterVar.Value.W);
+                    _trackFilterFrequency = randomFilterRange.Value.X + ((float)XactHelpers.Random.NextDouble() * randomFilterRange.Value.Y);
+                    _trackFilterQFactor = randomFilterRange.Value.Z + ((float)XactHelpers.Random.NextDouble() * randomFilterRange.Value.W);
                 }
                 else
                 {
@@ -221,18 +257,19 @@ namespace Microsoft.Xna.Framework.Audio
             cue.PlaySoundInstance(new_wave, variant_index);
         }
 
-        public void SetSoundEffects(List<SoundEffect> sounds)
+        public List<PlayWaveVariant> GetVariants()
         {
-            _variants.Clear();
+            return _variants;
+        }
+
+        public void SetVariants(List<PlayWaveVariant> variants)
+        {
+            _variants = variants;
             _totalWeights = 0;
 
-            foreach (var sound in sounds)
+            foreach (var variant in _variants)
             {
-                PlayWaveVariant variant = new PlayWaveVariant();
-                variant.overrideSoundEffect = sound;
                 _totalWeights += variant.weight;
-
-                _variants.Add(variant);
             }
         }
     }

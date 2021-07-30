@@ -3,6 +3,7 @@
 // file 'LICENSE.txt', which is part of this source code package.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 
 namespace Microsoft.Xna.Framework.Audio
@@ -11,7 +12,7 @@ namespace Microsoft.Xna.Framework.Audio
     {
         public float DefaultVolume;
 
-        private readonly ClipEvent[] _events;
+        public ClipEvent[] clipEvents;
 
         public bool FilterEnabled;
         public FilterMode FilterMode;
@@ -20,10 +21,21 @@ namespace Microsoft.Xna.Framework.Audio
 
         internal readonly bool UseReverb;
 
-        public XactClip (SoundBank soundBank, BinaryReader clipReader, bool useReverb)
+        public XactClip(List<PlayWaveVariant> variants, bool loop, bool use_reverb)
+        {
+            clipEvents = new ClipEvent[1];
+            var play_wave_event = new PlayWaveEvent(this, variants, 0.0F, 0.0F, loop);
+            play_wave_event.variationType = VariationType.Random;
+            clipEvents[0] = play_wave_event;
+
+            DefaultVolume = 1.0F;
+            UseReverb = use_reverb;
+        }
+
+        public XactClip (SoundBank soundBank, BinaryReader clipReader, bool use_reverb)
         {
 #pragma warning disable 0219
-            UseReverb = useReverb;
+            UseReverb = use_reverb;
 
             var volume_db = XactHelpers.ParseDecibels(clipReader.ReadByte());
             DefaultVolume = XactHelpers.ParseVolumeFromDecibels(volume_db);
@@ -41,7 +53,7 @@ namespace Microsoft.Xna.Framework.Audio
             clipReader.BaseStream.Seek(clip_offset, SeekOrigin.Begin);
             
             var num_events = clipReader.ReadByte();
-            _events = new ClipEvent[num_events];
+            clipEvents = new ClipEvent[num_events];
             
             for (var i=0; i<num_events; i++) 
             {
@@ -75,7 +87,7 @@ namespace Microsoft.Xna.Framework.Audio
                     var panAngle = clipReader.ReadUInt16() / 100.0f;
                     var panArc = clipReader.ReadUInt16() / 100.0f;
                     
-                    _events[i] = new PlayWaveEvent(
+                    clipEvents[i] = new PlayWaveEvent(
                         this,
                         timeStamp, 
                         randomOffset,
@@ -138,7 +150,7 @@ namespace Microsoft.Xna.Framework.Audio
                         totalWeights += weights[j];
                     }
 
-                    _events[i] = new PlayWaveEvent(
+                    clipEvents[i] = new PlayWaveEvent(
                         this,
                         timeStamp,
                         randomOffset,
@@ -208,7 +220,7 @@ namespace Microsoft.Xna.Framework.Audio
                     if ((variationFlags & 0x40) == 0x40)
                         filterVar = new Vector4(minFrequency, maxFrequency - minFrequency, minQ, maxQ - minQ);
 
-                    _events[i] = new PlayWaveEvent(
+                    clipEvents[i] = new PlayWaveEvent(
                         this,
                         timeStamp,
                         randomOffset,
@@ -306,7 +318,7 @@ namespace Microsoft.Xna.Framework.Audio
                         totalWeights += weights[j];
                     }
 
-                    _events[i] = new PlayWaveEvent(
+                    clipEvents[i] = new PlayWaveEvent(
                         this,
                         timeStamp,
                         randomOffset,
@@ -345,7 +357,7 @@ namespace Microsoft.Xna.Framework.Audio
                     // Unknown!
                     clipReader.ReadBytes(9);
 
-                    _events[i] = new VolumeEvent(   this, 
+                    clipEvents[i] = new VolumeEvent(   this, 
                                                     timeStamp, 
                                                     randomOffset, 
                                                     volume);
@@ -372,15 +384,15 @@ namespace Microsoft.Xna.Framework.Audio
         internal void Update(Cue cue, float old_time, float new_time)
         {
             // Scan the events and trigger any we have just passed.
-            for (int i = 0; i < _events.Length; i++)
+            for (int i = 0; i < clipEvents.Length; i++)
             {
-                var current_event = _events[i];
+                var current_event = clipEvents[i];
 
                 // We just passed a new event.
 
                 if (new_time >= current_event.TimeStamp)
                 {
-                    if (old_time <= current_event.TimeStamp) // This is a freshly passed event -- fire it.
+                    if (old_time < current_event.TimeStamp) // This is a freshly passed event -- fire it.
                     {
                         current_event.Fire(cue);
                     }

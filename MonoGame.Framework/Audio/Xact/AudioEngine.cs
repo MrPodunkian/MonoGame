@@ -307,7 +307,20 @@ namespace Microsoft.Xna.Framework.Audio
                 SoundEffect.PlatformSetReverbSettings(_reverbSettings);
             }
         }
-        
+
+        public int GetCategoryIndex(string name)
+        {
+            for (int i = 0; i < Categories.Length; i++)
+            {
+                if (Categories[i].Name == name)
+                {
+                    return i;
+                }
+            }
+
+            return -1;
+        }
+
         /// <summary>Returns an audio category by name.</summary>
         /// <param name="name">Friendly name of the category to get.</param>
         /// <returns>The AudioCategory with a matching name. Throws an exception if not found.</returns>

@@ -10,60 +10,85 @@ namespace Microsoft.Xna.Framework.Audio
 {
     public class XactSoundBankSound
     {
-        protected bool _complexSound;
-        public XactClip[] _soundClips;
-        private readonly int _waveBankIndex;
-        private readonly int _trackIndex;
-        public readonly float _volume;
-        public readonly float _pitch;
-        public uint _categoryID;
-        private readonly SoundBank _soundBank;
-        public readonly bool _useReverb;
+        public bool complexSound;
+        public XactClip[] soundClips;
+        public readonly int waveBankIndex;
+        public readonly int trackIndex;
+        public float volume = 1.0F;
+        public float pitch;
+        public uint categoryID;
+        public SoundBank soundBank;
+        public bool useReverb;
 
-        internal readonly int[] RpcCurves;
+        public int[] rpcCurves;
 
-        public List<Cue> activeCues;
-        
+        public XactSoundBankSound(SoundEffect[] sound_effects, int category_id, bool loop = false, bool use_reverb = false)
+        {
+            List<PlayWaveVariant> variants = new List<PlayWaveVariant>();
+
+            foreach (var sound_effect in sound_effects)
+            {
+                var variant = new PlayWaveVariant();
+                variant.overrideSoundEffect = sound_effect;
+                variants.Add(variant);
+            }
+
+            complexSound = true;
+            soundClips = new XactClip[1];
+            rpcCurves = new int[0];
+            categoryID = (uint)category_id;
+            useReverb = use_reverb;
+
+            soundClips[0] = new XactClip(variants, loop, useReverb);
+        }
+
+        public XactSoundBankSound(List<PlayWaveVariant> variants, int category_id, bool loop = false, bool use_reverb = false)
+        {
+            complexSound = true;
+            soundClips = new XactClip[1];
+            rpcCurves = new int[0];
+            categoryID = (uint)category_id;
+            useReverb = use_reverb;
+
+            soundClips[0] = new XactClip(variants, loop, useReverb);
+        }
+
         public XactSoundBankSound(SoundBank soundBank, int waveBankIndex, int trackIndex)
         {
-            _complexSound = false;
+            complexSound = false;
 
-            _soundBank = soundBank;
-            _waveBankIndex = waveBankIndex;
-            _trackIndex = trackIndex;
-            RpcCurves = new int[0];
-
-            activeCues = new List<Cue>();
+            this.soundBank = soundBank;
+            this.waveBankIndex = waveBankIndex;
+            this.trackIndex = trackIndex;
+            rpcCurves = new int[0];
         }
 
         public XactSoundBankSound(AudioEngine engine, SoundBank soundBank, BinaryReader soundReader)
         {
-            _soundBank = soundBank;
-
-            activeCues = new List<Cue>();
+            this.soundBank = soundBank;
 
             var flags = soundReader.ReadByte();
-            _complexSound = (flags & 0x1) != 0;
+            complexSound = (flags & 0x1) != 0;
             var hasRPCs = (flags & 0x0E) != 0;
             var hasDSPs = (flags & 0x10) != 0;
 
-            _categoryID = soundReader.ReadUInt16();
-            _volume = XactHelpers.ParseVolumeFromDecibels(soundReader.ReadByte());
-            _pitch = soundReader.ReadInt16() / 1200.0f;
+            categoryID = soundReader.ReadUInt16();
+            volume = XactHelpers.ParseVolumeFromDecibels(soundReader.ReadByte());
+            pitch = soundReader.ReadInt16() / 1200.0f;
             soundReader.ReadByte(); //priority
             soundReader.ReadUInt16(); // filter stuff?
             
             var numClips = 0;
-            if (_complexSound)
+            if (complexSound)
                 numClips = soundReader.ReadByte();
             else 
             {
-                _trackIndex = soundReader.ReadUInt16();
-                _waveBankIndex = soundReader.ReadByte();
+                trackIndex = soundReader.ReadUInt16();
+                waveBankIndex = soundReader.ReadByte();
             }
 
             if (!hasRPCs)
-                RpcCurves = new int[0];
+                rpcCurves = new int[0];
             else
             {
                 var current = soundReader.BaseStream.Position;
@@ -73,43 +98,43 @@ namespace Microsoft.Xna.Framework.Audio
                 var dataLength = soundReader.ReadUInt16();
 
                 var numPresets = soundReader.ReadByte();
-                RpcCurves = new int[numPresets];
+                rpcCurves = new int[numPresets];
                 for (var i = 0; i < numPresets; i++)
-                    RpcCurves[i] = engine.GetRpcIndex(soundReader.ReadUInt32());
+                    rpcCurves[i] = engine.GetRpcIndex(soundReader.ReadUInt32());
 
                 // Just in case seek to the right spot.
                 soundReader.BaseStream.Seek(current + dataLength, SeekOrigin.Begin);
             }
 
             if (!hasDSPs)
-                _useReverb = false;
+                useReverb = false;
             else
             {
                 // The file format for this seems to follow the pattern for 
                 // the RPC curves above, but in this case XACT only supports
                 // a single effect...  Microsoft Reverb... so just set it.
-                _useReverb = true;
+                useReverb = true;
                 soundReader.BaseStream.Seek(7, SeekOrigin.Current);
             }
 
-            if (_complexSound)
+            if (complexSound)
             {
-                _soundClips = new XactClip[numClips];
+                soundClips = new XactClip[numClips];
                 for (int i = 0; i < numClips; i++)
-                    _soundClips[i] = new XactClip(soundBank, soundReader, _useReverb);
+                    soundClips[i] = new XactClip(soundBank, soundReader, useReverb);
             }
         }
 
         public SoundEffectInstance GetSimpleSoundInstance()
         {
-            if (_complexSound)
+            if (complexSound)
             {
                 return null;
             }
 
             bool streaming;
 
-            SoundEffectInstance instance = _soundBank.GetSoundEffectInstance(_waveBankIndex, _trackIndex, out streaming);
+            SoundEffectInstance instance = soundBank.GetSoundEffectInstance(waveBankIndex, trackIndex, out streaming);
 
             return instance;
         }

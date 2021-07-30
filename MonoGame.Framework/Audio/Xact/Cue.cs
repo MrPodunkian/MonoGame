@@ -3,6 +3,7 @@
 // file 'LICENSE.txt', which is part of this source code package.
 
 using System;
+using System.Collections.Generic;
 
 namespace Microsoft.Xna.Framework.Audio
 {
@@ -17,8 +18,8 @@ namespace Microsoft.Xna.Framework.Audio
         protected AudioEngine _engine;
         protected string _name;
 
-        protected XactSoundBankSound[] _xactSounds;
-        protected float[] _probabilities;
+        protected List<XactSoundBankSound> _xactSounds;
+//        protected float[] _probabilities;
         protected int _instanceLimit = 255;
         protected int _limitBehavior = 0;
 
@@ -27,7 +28,7 @@ namespace Microsoft.Xna.Framework.Audio
         protected bool _applied3D;
         protected bool _played;
 
-        protected XactSoundBankSound _xactSound;
+        protected XactSoundBankSound _currentXactSound;
         protected int _variantIndex = -1;
 
         protected SoundEffectInstance _soundEffect;
@@ -139,14 +140,14 @@ namespace Microsoft.Xna.Framework.Audio
             get { return _name; }
         }
 
-        internal Cue(AudioEngine engine, XactCueDefinition cue)
+        internal Cue(AudioEngine engine, CueDefinition cue)
         {
             _engine = engine;
             _name = cue.name;
             _xactSounds = cue.sounds;
-            _probabilities = cue.probabilities;
+            //_probabilities = cue.probabilities;
             _instanceLimit = cue.instanceLimit;
-            _limitBehavior = cue.limitBehavior;
+            _limitBehavior = (int)cue.limitBehavior;
             _variables = engine.CreateCueVariables();
         }
 
@@ -154,16 +155,16 @@ namespace Microsoft.Xna.Framework.Audio
         {
             _engine = engine;
             _name = cuename;
-            _xactSound = sound;
+            _currentXactSound = sound;
             _variables = engine.CreateCueVariables();
         }
         
-        internal Cue(AudioEngine engine, string cuename, XactSoundBankSound[] sounds, float[] probs)
+        internal Cue(AudioEngine engine, string cuename, List<XactSoundBankSound> sounds, float[] probs)
         {
             _engine = engine;
             _name = cuename;
             _xactSounds = sounds;
-            _probabilities = probs;
+            //_probabilities = probs;
             _variables = engine.CreateCueVariables();
         }
 
@@ -172,7 +173,7 @@ namespace Microsoft.Xna.Framework.Audio
             IsDisposed = false;
             IsCreated = false;
             IsPrepared = true;
-            _xactSound = null;
+            _currentXactSound = null;
         }
 
         /// <summary>Pauses playback.</summary>
@@ -254,10 +255,10 @@ namespace Microsoft.Xna.Framework.Audio
                 if (_xactSounds != null)
                 {
                     //TODO: Probabilities
-                    var index = XactHelpers.Random.Next(_xactSounds.Length);
-                    _xactSound = _xactSounds[index];
+                    var index = XactHelpers.Random.Next(_xactSounds.Count);
+                    _currentXactSound = _xactSounds[index];
 
-                    if (_xactSound == null)
+                    if (_currentXactSound == null)
                     {
                         return;
                     }
@@ -265,7 +266,7 @@ namespace Microsoft.Xna.Framework.Audio
 
                 var volume = UpdateRpcCurves();
 
-                var category = _engine.Categories[_xactSound._categoryID];
+                var category = _engine.Categories[_currentXactSound.categoryID];
 
                 var instance_count = category.GetPlayingInstanceCount();
 
@@ -281,13 +282,25 @@ namespace Microsoft.Xna.Framework.Audio
                     }
                 }
 
-                var wave = _xactSound.GetSimpleSoundInstance();
+                var wave = _currentXactSound.GetSimpleSoundInstance();
 
                 _time = 0;
 
                 if (wave != null)
                 {
+                    // Simple sound
                     PlaySoundInstance(wave);
+                }
+                else
+                {
+                    // Complex sound
+                    if (_currentXactSound.soundClips != null)
+                    {
+                        foreach (var clip in _currentXactSound.soundClips)
+                        {
+                            clip.Update(this, -1, _time);
+                        }
+                    }
                 }
             }
 
@@ -295,7 +308,7 @@ namespace Microsoft.Xna.Framework.Audio
             IsPrepared = false;
         }
 
-        public virtual void PlaySoundInstance(SoundEffectInstance sound_instance, int variant_index = -1)
+        internal void PlaySoundInstance(SoundEffectInstance sound_instance, int variant_index = -1)
         {
             if (_soundEffect != null)
             {
@@ -309,7 +322,7 @@ namespace Microsoft.Xna.Framework.Audio
             {
                 _soundEffect.Play();
 
-                _playingCategory = _engine.Categories[_xactSound._categoryID];
+                _playingCategory = _engine.Categories[_currentXactSound.categoryID];
                 _playingCategory.AddSound(this);
 
                 _UpdateSoundParameters();
@@ -446,7 +459,7 @@ namespace Microsoft.Xna.Framework.Audio
                 var angle = MathHelper.ToDegrees((float)Math.Acos(slope));
                 var j = FindVariable("OrientationAngle");
                 _variables[j].SetValue(angle);
-                if (_xactSound != null)
+                if (_currentXactSound != null)
                 {
                     //_curSound.SetCuePan(Vector3.Dot(direction, right));
                 }
@@ -459,9 +472,62 @@ namespace Microsoft.Xna.Framework.Audio
             _applied3D = true;
         }
 
+        public List<PlayWaveEvent> GetPlayWaveEvents()
+        {
+            List<PlayWaveEvent> events = null;
+
+            if (_xactSounds == null)
+            {
+                if (_currentXactSound.complexSound)
+                {
+                    foreach (var clip in _currentXactSound.soundClips)
+                    {
+                        foreach (var clip_event in clip.clipEvents)
+                        {
+                            if (clip_event is PlayWaveEvent)
+                            {
+                                if (events == null)
+                                {
+                                    events = new List<PlayWaveEvent>();
+                                }
+
+                                events.Add(clip_event as PlayWaveEvent);
+                            }
+                        }
+                    }
+                }
+            }
+            else
+            {
+                foreach (var xact_sound in _xactSounds)
+                {
+                    if (xact_sound.complexSound)
+                    {
+                        foreach (var clip in xact_sound.soundClips)
+                        {
+                            foreach (var clip_event in clip.clipEvents)
+                            {
+                                if (clip_event is PlayWaveEvent)
+                                {
+                                    if (events == null)
+                                    {
+                                        events = new List<PlayWaveEvent>();
+                                    }
+
+                                    events.Add(clip_event as PlayWaveEvent);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            return events;
+        }
+
         internal void Update(float dt)
         {
-            if (_xactSound == null)
+            if (_currentXactSound == null)
             {
                 return;
             }
@@ -476,9 +542,9 @@ namespace Microsoft.Xna.Framework.Audio
                 float old_time = _time;
                 _time += dt;
 
-                if (_xactSound._soundClips != null)
+                if (_currentXactSound.soundClips != null)
                 {
-                    foreach (var clip in _xactSound._soundClips)
+                    foreach (var clip in _currentXactSound.soundClips)
                     {
                         clip.Update(this, old_time, _time);
                     }
@@ -498,7 +564,7 @@ namespace Microsoft.Xna.Framework.Audio
             var volume = 1.0f;
 
             // Evaluate the runtime parameter controls.
-            var rpcCurves = _xactSound.RpcCurves;
+            var rpcCurves = _currentXactSound.rpcCurves;
             if (rpcCurves.Length > 0)
             {
                 var pitch = 0.0f;
@@ -561,17 +627,17 @@ namespace Microsoft.Xna.Framework.Audio
             return volume;
         }
 
-        public virtual void _UpdateSoundParameters()
+        internal void _UpdateSoundParameters()
         {
             if (_soundEffect == null)
             {
                 return;
             }
 
-            _soundEffect.Volume = _cueVolume * _playingCategory._volume * _rpcVolume * _xactSound._volume;
-            _soundEffect.Pitch = _rpcPitch + _cuePitch + _xactSound._pitch;
+            _soundEffect.Volume = _cueVolume * _playingCategory._volume * _rpcVolume * _currentXactSound.volume;
+            _soundEffect.Pitch = _rpcPitch + _cuePitch + _currentXactSound.pitch;
 
-            if (_xactSound._useReverb)
+            if (_currentXactSound.useReverb)
             {
                 _soundEffect.PlatformSetReverbMix(_rpcReverbMix);
             }
