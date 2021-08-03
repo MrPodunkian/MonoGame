@@ -503,7 +503,7 @@ namespace Microsoft.Xna.Framework
         private const int PREVIOUS_SLEEP_TIME_COUNT = 128;
         private const int SLEEP_TIME_MASK = PREVIOUS_SLEEP_TIME_COUNT - 1;
 
-        private TimeSpan[] previousSleepTimes = new TimeSpan[100];
+        private TimeSpan[] previousSleepTimes = new TimeSpan[PREVIOUS_SLEEP_TIME_COUNT];
         private int sleepTimeIndex = 0;
         private TimeSpan worstCaseSleepPrecision = TimeSpan.FromMilliseconds(1);
 
