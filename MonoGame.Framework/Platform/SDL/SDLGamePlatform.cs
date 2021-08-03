@@ -88,7 +88,6 @@ namespace Microsoft.Xna.Framework
 
             while (true)
             {
-                SdlRunLoop();
                 Game.Tick();
                 Threading.Run();
                 GraphicsDevice.DisposeContexts();
@@ -96,6 +95,11 @@ namespace Microsoft.Xna.Framework
                 if (_isExiting > 0)
                     break;
             }
+        }
+
+        public override void PollEvents()
+        {
+            SdlRunLoop();
         }
 
         private void SdlRunLoop()

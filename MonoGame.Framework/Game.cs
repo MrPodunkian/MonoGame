@@ -69,6 +69,11 @@ namespace Microsoft.Xna.Framework
         {
             _instance = this;
 
+            for (int i = 0; i < previousSleepTimes.Length; i += 1)
+            {
+                previousSleepTimes[i] = TimeSpan.FromMilliseconds(1);
+            }
+
             LaunchParameters = new LaunchParameters();
             _services = new GameServiceContainer();
             _components = new GameComponentCollection();
@@ -493,6 +498,15 @@ namespace Microsoft.Xna.Framework
         private Stopwatch _gameTimer;
         private long _previousTicks = 0;
         private int _updateFrameLag;
+
+        // must be a power of 2 so we can do a bitmask optimization when checking worst case
+        private const int PREVIOUS_SLEEP_TIME_COUNT = 128;
+        private const int SLEEP_TIME_MASK = PREVIOUS_SLEEP_TIME_COUNT - 1;
+
+        private TimeSpan[] previousSleepTimes = new TimeSpan[100];
+        private int sleepTimeIndex = 0;
+        private TimeSpan worstCaseSleepPrecision = TimeSpan.FromMilliseconds(1);
+
 #if WINDOWS_UAP
         private readonly object _locker = new object();
 #endif
@@ -512,41 +526,41 @@ namespace Microsoft.Xna.Framework
             // any change fully in both the fixed and variable timestep 
             // modes across multiple devices and platforms.
 
-        RetryTick:
+            // FNA Timing Fixes (from https://github.com/FNA-XNA/FNA/pull/359)
+            AdvanceElapsedTime();
 
-            if (!IsActive && (InactiveSleepTime.TotalMilliseconds >= 1.0))
+            if (IsFixedTimeStep)
             {
-#if WINDOWS_UAP
-                lock (_locker)
-                    System.Threading.Monitor.Wait(_locker, (int)InactiveSleepTime.TotalMilliseconds);
-#else
-                System.Threading.Thread.Sleep((int)InactiveSleepTime.TotalMilliseconds);
-#endif
-            }
-
-            // Advance the accumulated elapsed time.
-            var currentTicks = _gameTimer.Elapsed.Ticks;
-            _accumulatedElapsedTime += TimeSpan.FromTicks(currentTicks - _previousTicks);
-            _previousTicks = currentTicks;
-
-            if (IsFixedTimeStep && _accumulatedElapsedTime < TargetElapsedTime)
-            {
-                // Sleep for as long as possible without overshooting the update time
-                var sleepTime = (TargetElapsedTime - _accumulatedElapsedTime).TotalMilliseconds;
-                // We only have a precision timer on Windows, so other platforms may still overshoot
-#if WINDOWS && !DESKTOPGL
-                MonoGame.Framework.Utilities.TimerHelper.SleepForNoMoreThan(sleepTime);
-#elif WINDOWS_UAP
-                lock (_locker)
-                    if (sleepTime >= 2.0)
-                        System.Threading.Monitor.Wait(_locker, 1);
-#elif DESKTOPGL || ANDROID || IOS
-                if (sleepTime >= 2.0)
+                /* If we are in fixed timestep, we want to wait until the next frame,
+				 * but we don't want to oversleep. Requesting repeated 1ms sleeps and
+				 * seeing how long we actually slept for lets us estimate the worst case
+				 * sleep precision so we don't oversleep the next frame.
+				 */
+                while (_accumulatedElapsedTime + worstCaseSleepPrecision < TargetElapsedTime)
+                {
                     System.Threading.Thread.Sleep(1);
-#endif
-                // Keep looping until it's time to perform the next update
-                goto RetryTick;
+                    TimeSpan timeAdvancedSinceSleeping = AdvanceElapsedTime();
+                    UpdateEstimatedSleepPrecision(timeAdvancedSinceSleeping);
+                }
+
+                /* Now that we have slept into the sleep precision threshold, we need to wait
+				 * for just a little bit longer until the target elapsed time has been reached.
+				 * 5it(1) works by pausing the thread for very short intervals, so it is
+				 * an efficient and time-accurate way to wait out the rest of the time.
+				 */
+                while (_accumulatedElapsedTime < TargetElapsedTime)
+                {
+                    System.Threading.Thread.SpinWait(1);
+                    AdvanceElapsedTime();
+                }
             }
+
+            // End FNA timing fixes
+
+            // As per FNA timing fix above, poll events after sleeping rather than before sleeping to mitigate input lag.
+
+            // Now that we are going to perform an update, let's poll events.
+            Platform.PollEvents();
 
             // Do not allow any update to take longer than our maximum.
             if (_accumulatedElapsedTime > _maxElapsedTime)
@@ -613,6 +627,59 @@ namespace Microsoft.Xna.Framework
                 Platform.Exit();
                 _shouldExit = false; //prevents perpetual exiting on platforms supporting resume.
             }
+        }
+
+        // FNA timing fix related functions.
+
+        private TimeSpan AdvanceElapsedTime()
+        {
+            long currentTicks = _gameTimer.Elapsed.Ticks;
+            TimeSpan timeAdvanced = TimeSpan.FromTicks(currentTicks - _previousTicks);
+            _accumulatedElapsedTime += timeAdvanced;
+            _previousTicks = currentTicks;
+            return timeAdvanced;
+        }
+
+        /* To calculate the sleep precision of the OS, we take the worst case
+		 * time spent sleeping over the results of previous requests to sleep 1ms.
+		 */
+        private void UpdateEstimatedSleepPrecision(TimeSpan timeSpentSleeping)
+        {
+            /* It is unlikely that the scheduler will actually be more imprecise than
+			 * 4ms and we don't want to get wrecked by a single long sleep so we cap this
+			 * value at 4ms for sanity.
+			 */
+            TimeSpan upperTimeBound = TimeSpan.FromMilliseconds(4);
+
+            if (timeSpentSleeping > upperTimeBound)
+            {
+                timeSpentSleeping = upperTimeBound;
+            }
+
+            /* We know the previous worst case - it's saved in worstCaseSleepPrecision.
+			 * We also know the current index. So the only way the worst case changes
+			 * is if we either 1) just got a new worst case, or 2) the worst case was
+			 * the oldest entry on the list.
+			 */
+            if (timeSpentSleeping >= worstCaseSleepPrecision)
+            {
+                worstCaseSleepPrecision = timeSpentSleeping;
+            }
+            else if (previousSleepTimes[sleepTimeIndex] == worstCaseSleepPrecision)
+            {
+                TimeSpan maxSleepTime = TimeSpan.MinValue;
+                for (int i = 0; i < previousSleepTimes.Length; i += 1)
+                {
+                    if (previousSleepTimes[i] > maxSleepTime)
+                    {
+                        maxSleepTime = previousSleepTimes[i];
+                    }
+                }
+                worstCaseSleepPrecision = maxSleepTime;
+            }
+
+            previousSleepTimes[sleepTimeIndex] = timeSpentSleeping;
+            sleepTimeIndex = (sleepTimeIndex + 1) & SLEEP_TIME_MASK;
         }
 
         #endregion
@@ -749,9 +816,9 @@ namespace Microsoft.Xna.Framework
             EventHelpers.Raise(sender, Deactivated, args);
 		}
 
-        #endregion Protected Methods
+#endregion Protected Methods
 
-        #region Event Handlers
+#region Event Handlers
 
         private void Components_ComponentAdded(
             object sender, GameComponentCollectionEventArgs e)
@@ -778,9 +845,9 @@ namespace Microsoft.Xna.Framework
 			DoExiting();
         }
 
-        #endregion Event Handlers
+#endregion Event Handlers
 
-        #region Internal Methods
+#region Internal Methods
 
         // FIXME: We should work toward eliminating internal methods.  They
         //        break entirely the possibility that additional platforms could
@@ -856,7 +923,7 @@ namespace Microsoft.Xna.Framework
 			UnloadContent();
 		}
 
-        #endregion Internal Methods
+#endregion Internal Methods
 
         internal GraphicsDeviceManager graphicsDeviceManager
         {
