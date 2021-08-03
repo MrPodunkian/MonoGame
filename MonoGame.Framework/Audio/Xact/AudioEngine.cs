@@ -308,6 +308,11 @@ namespace Microsoft.Xna.Framework.Audio
             }
         }
 
+        public ReverbSettings GetReverbSettings()
+        {
+            return _reverbSettings;
+        }
+
         public int GetCategoryIndex(string name)
         {
             for (int i = 0; i < Categories.Length; i++)
