@@ -48,6 +48,43 @@ namespace Microsoft.Xna.Framework.Audio
         // Set to 0 when play begins. Less than 0 means stopped.
         protected float _time = -1;
 
+        protected bool? _pitchControlledByRPC;
+
+        public bool IsPitchBeingControlledByRPC
+        {
+            get
+            {
+                if (_currentXactSound == null)
+                {
+                    return false;
+                }
+
+                if (!_pitchControlledByRPC.HasValue)
+                {
+                    var curves = _currentXactSound.rpcCurves;
+
+                    if (curves.Length > 0)
+                    {
+                        for (var i = 0; i < curves.Length; i++)
+                        {
+                            if (_engine.RpcCurves[curves[i]].Parameter == RpcParameter.Pitch)
+                            {
+                                _pitchControlledByRPC = true;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (!_pitchControlledByRPC.HasValue)
+                    {
+                        _pitchControlledByRPC = false;
+                    }
+                }
+
+                return _pitchControlledByRPC.Value;
+            }
+        }
+
         /// <summary>Indicates whether or not the cue is currently paused.</summary>
         /// <remarks>IsPlaying and IsPaused both return true if a cue is paused while playing.</remarks>
         public bool IsPaused
