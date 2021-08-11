@@ -357,7 +357,7 @@ namespace Microsoft.Xna.Framework.Audio
         /// Plays a cue.
         /// </summary>
         /// <param name="name">Name of the cue to play.</param>
-        public Cue PlayCue(string name)
+        public void PlayCue(string name)
         {
             if (string.IsNullOrEmpty(name))
                 throw new ArgumentNullException("name");
@@ -373,8 +373,6 @@ namespace Microsoft.Xna.Framework.Audio
             var cue = new Cue(_audioengine, cue_definition);
             cue.Prepare();
             cue.Play();
-
-            return cue;
         }
 
         /// <summary>
@@ -386,7 +384,7 @@ namespace Microsoft.Xna.Framework.Audio
         /// <param name="name">The name of the cue to play.</param>
         /// <param name="listener">The listener state.</param>
         /// <param name="emitter">The cue emitter state.</param>
-        public Cue PlayCue(string name, AudioListener listener, AudioEmitter emitter)
+        public void PlayCue(string name, AudioListener listener, AudioEmitter emitter)
         {
             if (string.IsNullOrEmpty(name))
                 throw new ArgumentNullException("name");
@@ -404,8 +402,6 @@ namespace Microsoft.Xna.Framework.Audio
             cue.Prepare();
             cue.Apply3D(listener, emitter);
             cue.Play();
-
-            return cue;
         }
 
         /// <summary>
