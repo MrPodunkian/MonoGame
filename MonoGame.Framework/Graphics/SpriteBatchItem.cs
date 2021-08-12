@@ -28,30 +28,33 @@ namespace Microsoft.Xna.Framework.Graphics
             // TODO, Should we be just assigning the Depth Value to Z?
             // According to http://blogs.msdn.com/b/shawnhar/archive/2011/01/12/spritebatch-billboards-in-a-3d-world.aspx
             // We do.
+
+            // 8/12/2021 ARTHUR: Setting Z to depth culls any sprites that have a depth < 0, or > 1, which is a problem for some modders,
+            // so don't actually do that, after all.
 			vertexTL.Position.X = x+dx*cos-dy*sin;
             vertexTL.Position.Y = y+dx*sin+dy*cos;
-            vertexTL.Position.Z = depth;
+            vertexTL.Position.Z = 0;
             vertexTL.Color = color;
             vertexTL.TextureCoordinate.X = texCoordTL.X;
             vertexTL.TextureCoordinate.Y = texCoordTL.Y;
 
 			vertexTR.Position.X = x+(dx+w)*cos-dy*sin;
             vertexTR.Position.Y = y+(dx+w)*sin+dy*cos;
-            vertexTR.Position.Z = depth;
+            vertexTR.Position.Z = 0;
             vertexTR.Color = color;
             vertexTR.TextureCoordinate.X = texCoordBR.X;
             vertexTR.TextureCoordinate.Y = texCoordTL.Y;
 
 			vertexBL.Position.X = x+dx*cos-(dy+h)*sin;
             vertexBL.Position.Y = y+dx*sin+(dy+h)*cos;
-            vertexBL.Position.Z = depth;
+            vertexBL.Position.Z = 0;
             vertexBL.Color = color;
             vertexBL.TextureCoordinate.X = texCoordTL.X;
             vertexBL.TextureCoordinate.Y = texCoordBR.Y;
 
 			vertexBR.Position.X = x+(dx+w)*cos-(dy+h)*sin;
             vertexBR.Position.Y = y+(dx+w)*sin+(dy+h)*cos;
-            vertexBR.Position.Z = depth;
+            vertexBR.Position.Z = 0;
             vertexBR.Color = color;
             vertexBR.TextureCoordinate.X = texCoordBR.X;
             vertexBR.TextureCoordinate.Y = texCoordBR.Y;
@@ -61,28 +64,28 @@ namespace Microsoft.Xna.Framework.Graphics
         {
             vertexTL.Position.X = x;
             vertexTL.Position.Y = y;
-            vertexTL.Position.Z = depth;
+            vertexTL.Position.Z = 0;
             vertexTL.Color = color;
             vertexTL.TextureCoordinate.X = texCoordTL.X;
             vertexTL.TextureCoordinate.Y = texCoordTL.Y;
 
             vertexTR.Position.X = x + w;
             vertexTR.Position.Y = y;
-            vertexTR.Position.Z = depth;
+            vertexTR.Position.Z = 0;
             vertexTR.Color = color;
             vertexTR.TextureCoordinate.X = texCoordBR.X;
             vertexTR.TextureCoordinate.Y = texCoordTL.Y;
 
             vertexBL.Position.X = x;
             vertexBL.Position.Y = y + h;
-            vertexBL.Position.Z = depth;
+            vertexBL.Position.Z = 0;
             vertexBL.Color = color;
             vertexBL.TextureCoordinate.X = texCoordTL.X;
             vertexBL.TextureCoordinate.Y = texCoordBR.Y;
 
             vertexBR.Position.X = x + w;
             vertexBR.Position.Y = y + h;
-            vertexBR.Position.Z = depth;
+            vertexBR.Position.Z = 0;
             vertexBR.Color = color;
             vertexBR.TextureCoordinate.X = texCoordBR.X;
             vertexBR.TextureCoordinate.Y = texCoordBR.Y;
