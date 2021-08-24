@@ -129,8 +129,11 @@ namespace Microsoft.Xna.Framework
                         Mouse.ScrollX += ev.Wheel.X * wheelDelta;
                         break;
                     case Sdl.EventType.MouseMotion:
-                        Window.MouseState.X = ev.Motion.X;
-                        Window.MouseState.Y = ev.Motion.Y;
+                        // HACK: ARTHUR 8/24/2021: This is causing weird jittery right-stick based mouse movement when in fullscreen mode (maybe has to do with
+                        // programmatically overriding the mouse position triggering a MouseMotion event which is stomping the position set by the function?)
+
+                        //Window.MouseState.X = ev.Motion.X;
+                        //Window.MouseState.Y = ev.Motion.Y;
                         break;
                     case Sdl.EventType.KeyDown:
                     {
