@@ -38,13 +38,17 @@ namespace Microsoft.Xna.Framework.Input
                 window.MouseState.HorizontalScrollWheelValue = ScrollX;
                 window.MouseState.ScrollWheelValue = ScrollY;
             }
-            else
-            {
-                // Window does not have mouse focus, we need to manually get the position
-                var clientBounds = window.ClientBounds;
-                window.MouseState.X = x - clientBounds.X;
-                window.MouseState.Y = y - clientBounds.Y;
-            }
+
+            // HACK: ARTHUR 8/24/2021: This is causing weird jittery right-stick based mouse movement when in fullscreen mode (maybe has to do with
+            // programmatically overriding the mouse position triggering a MouseMotion event which is stomping the position set by the function?)
+
+            //else
+            //{
+            // Window does not have mouse focus, we need to manually get the position
+            var clientBounds = window.ClientBounds;
+            window.MouseState.X = x - clientBounds.X;
+            window.MouseState.Y = y - clientBounds.Y;
+            //}
 
             return window.MouseState;
         }
