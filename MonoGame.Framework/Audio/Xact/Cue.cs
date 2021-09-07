@@ -681,13 +681,13 @@ namespace Microsoft.Xna.Framework.Audio
 
             // The RPC filter overrides the randomized track filter.
 
-            // 9/7/2021 ARTHUR: Previously, if a filterless sound effect had an RPC curve with Frequency defined,
-            // it would forcibly apply a filter which would cause FAudio to stop working due to an out-of-range
-            // Q value of 0 being used. Instead, we check if the filter was enabled by the play wave sound event
-            // before we apply the filter.
-
             if (_soundEffect.IsFilterEnabled())
             {
+                // 9/7/2021 ARTHUR: Previously, if a filterless sound effect had an RPC curve with Frequency defined,
+                // it would forcibly apply a filter which would cause FAudio to stop working due to an out-of-range
+                // Q value of 0 being used. Instead, we check if the filter was enabled by the play wave sound event
+                // before we apply the filter.
+
                 if (_rpcFilterQFactor.HasValue || _rpcFilterFrequency.HasValue)
                 {
                     _soundEffect.PlatformSetFilter(_soundEffect._filterMode,
