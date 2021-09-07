@@ -277,6 +277,11 @@ namespace Microsoft.Xna.Framework.Audio
 			}
 		}
 
+        internal bool IsFilterEnabled()
+        {
+            return _applyFilter;
+        }
+
 		internal void PlatformClearFilter()
 		{
             _applyFilter = false;
