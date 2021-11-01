@@ -18,7 +18,8 @@ namespace Microsoft.Xna.Framework.Audio
 
         private float _reverbMix = 0.0F;
 
-        internal bool _applyFilter = false;
+        internal bool _filterDirty = false;
+        internal bool _filterEnabled = false;
         internal FilterMode _filterMode;
         internal float _filterQ;
         internal float _filterFrequency;
@@ -158,7 +159,8 @@ namespace Microsoft.Xna.Framework.Audio
 				usingReverb = false;
 				_state = SoundState.Stopped;
                 hasStarted = false;
-                _applyFilter = false;
+                _filterDirty = false;
+                _filterEnabled = false;
 
 				if (_isDynamic)
 				{
@@ -266,7 +268,8 @@ namespace Microsoft.Xna.Framework.Audio
 
 		internal void PlatformSetFilter(FilterMode mode, float filterQ, float frequency)
 		{
-			_applyFilter = true;
+            _filterEnabled = true;
+            _filterDirty = true;
 			_filterMode = mode;
 			_filterQ = filterQ;
 			_filterFrequency = frequency;
@@ -279,12 +282,13 @@ namespace Microsoft.Xna.Framework.Audio
 
         internal bool IsFilterEnabled()
         {
-            return _applyFilter;
+            return _filterEnabled;
         }
 
 		internal void PlatformClearFilter()
 		{
-            _applyFilter = false;
+            _filterDirty = false;
+            _filterEnabled = false;
         }
 
 		private void PlatformDispose(bool disposing)
@@ -343,7 +347,7 @@ namespace Microsoft.Xna.Framework.Audio
 
 		void ApplyFilter()
 		{
-			if (!_applyFilter)
+			if (!_filterDirty)
 			{
 				return;
 			}
@@ -367,7 +371,7 @@ namespace Microsoft.Xna.Framework.Audio
 				_ApplyHighPassFilter(cutoff, one_over_q);
 			}
 
-			_applyFilter = false;
+			_filterDirty = false;
 		}
 
 		internal unsafe void _ApplyReverb(float reverb_gain)
