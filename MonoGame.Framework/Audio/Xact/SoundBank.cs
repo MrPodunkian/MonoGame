@@ -29,31 +29,31 @@ namespace Microsoft.Xna.Framework.Audio
         {
         }
 
-        public CueDefinition(string cue_name, SoundEffect sound_effect, int category_id, bool use_reverb = false)
+        public CueDefinition(string cue_name, SoundEffect sound_effect, int category_id, bool loop = false, bool use_reverb = false)
         {
             this.name = cue_name;
-            SetSound(sound_effect, category_id, use_reverb);
+            SetSound(sound_effect, category_id, loop, use_reverb);
         }
 
-        public CueDefinition(string cue_name, SoundEffect[] sound_effects, int category_id, bool use_reverb = false)
+        public CueDefinition(string cue_name, SoundEffect[] sound_effects, int category_id, bool loop = false, bool use_reverb = false)
         {
             this.name = cue_name;
-            SetSound(sound_effects, category_id, use_reverb);
+            SetSound(sound_effects, category_id, loop, use_reverb);
         }
 
         // Sets this cue to a play the specified sound effect.
-        public virtual void SetSound(SoundEffect sound_effect, int category_id, bool use_reverb = false)
+        public virtual void SetSound(SoundEffect sound_effect, int category_id, bool loop = false, bool use_reverb = false)
         {
             sounds.Clear();
-            sounds.Add(new XactSoundBankSound(new SoundEffect[] { sound_effect }, category_id, use_reverb) );
+            sounds.Add(new XactSoundBankSound(new SoundEffect[] { sound_effect }, category_id, loop, use_reverb) );
             //probabilities = new float[] { 1.0F };
         }
 
         // Sets this cue to a play one of the specified sound effects.
-        public virtual void SetSound(SoundEffect[] sound_effects, int category_id, bool use_reverb = false)
+        public virtual void SetSound(SoundEffect[] sound_effects, int category_id, bool loop = false, bool use_reverb = false)
         {
             sounds.Clear();
-            sounds.Add(new XactSoundBankSound(sound_effects, category_id, use_reverb) );
+            sounds.Add(new XactSoundBankSound(sound_effects, category_id, loop, use_reverb) );
             //probabilities = new float[] { 1.0F };
         }
     }
