@@ -51,7 +51,6 @@ namespace Microsoft.Xna.Framework
             set
             {
                 Sdl.Window.SetPosition(Handle, value.X, value.Y);
-                _wasMoved = true;
             }
         }
 
@@ -90,7 +89,7 @@ namespace Microsoft.Xna.Framework
         private bool _resizable, _borderless, _willBeFullScreen, _mouseVisible, _hardwareSwitch;
         private string _screenDeviceName;
         private int _width, _height;
-        private bool _wasMoved, _supressMoved;
+        private bool _supressMoved;
 
         public SdlGameWindow(Game game)
         {
@@ -249,7 +248,7 @@ namespace Microsoft.Xna.Framework
             {
                 // We need to get the display information again in case
                 // the resolution of it was changed.
-                Sdl.Display.GetBounds (displayIndex, out displayRect);
+                Sdl.Display.GetBounds(displayIndex, out displayRect);
 
                 // This centering only occurs when exiting fullscreen
                 // so it should center the window on the current display.
@@ -257,12 +256,7 @@ namespace Microsoft.Xna.Framework
                 centerY = displayRect.Y + displayRect.Height / 2 - clientHeight / 2;
             }
 
-            // If this window is resizable, there is a bug in SDL 2.0.4 where
-            // after the window gets resized, window position information
-            // becomes wrong (for me it always returned 10 8). Solution is
-            // to not try and set the window position because it will be wrong.
-            if ((Sdl.Patch > 4 || !AllowUserResizing) && !_wasMoved)
-                Sdl.Window.SetPosition(Handle, centerX, centerY);
+                            Sdl.Window.SetPosition(Handle, centerX, centerY);
 
             if (IsFullScreen != _willBeFullScreen)
                 OnClientSizeChanged();
@@ -272,15 +266,37 @@ namespace Microsoft.Xna.Framework
             _supressMoved = true;
         }
 
-        internal void Moved()
+        // 12/1/2021 ARTHUR: It was possible that suppressMoved was set by EndScreenDeviceChange, but a subsequent move didn't occur, causing
+        // the suppressMoved flag to suppress the next, valid move. We now clear out the flag at the end of the SDL tick.
+        public void ClearSuppressMoved()
+        {
+            _supressMoved = false;
+        }
+
+        internal void Moved(int x, int y)
         {
             if (_supressMoved)
             {
-                _supressMoved = false;
+                // Note we no longer unset _suppressedMoved -- it is done automatically after all SDL events are processed.
                 return;
             }
 
-            _wasMoved = true;
+            if (IsFullScreen)
+            {
+                // HACK: 12/1/2021 ARTHUR: When switching monitors using Windows Key + Left/Right Arrow,
+                // SDL doesn't seem to update the display the Window is centered on. Therefore, we use this hack
+                // to unset fullscreen mode, move the position of the window (which updates the display index)
+                // and then re-set fullscreen.
+
+                _supressMoved = true;
+
+                Sdl.Window.SetFullscreen(Handle, 0); // Set to windowed.
+                Sdl.Window.SetPosition(Handle, x, y); // Move the window (updating the Display index associated with the Window)
+
+                // Set the fullscreen flag using the same logic as in EndScreenDeviceChange.
+                var fullscreenFlag = _game.graphicsDeviceManager.HardwareModeSwitch ? Sdl.Window.State.Fullscreen : Sdl.Window.State.FullscreenDesktop;
+                Sdl.Window.SetFullscreen(Handle, (_willBeFullScreen) ? fullscreenFlag : 0);
+            }
         }
 
         public void ClientResize(int width, int height)
