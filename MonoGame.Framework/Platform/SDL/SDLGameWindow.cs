@@ -11,7 +11,7 @@ using MonoGame.Framework.Utilities;
 
 namespace Microsoft.Xna.Framework
 {
-    internal class SdlGameWindow : GameWindow, IDisposable
+    public class SdlGameWindow : GameWindow, IDisposable
     {
         public override bool AllowUserResizing
         {
@@ -271,6 +271,26 @@ namespace Microsoft.Xna.Framework
         public void ClearSuppressMoved()
         {
             _supressMoved = false;
+        }
+
+        public int GetDisplayIndex()
+        {
+            return Sdl.Window.GetDisplayIndex(Handle);
+        }
+
+        public bool CenterOnDisplayIndex(int i)
+        {
+            if (i >= 0 && i < Sdl.Display.GetNumVideoDisplays())
+            {
+                Sdl.Rectangle rect;
+                Sdl.Display.GetBounds(i, out rect);
+
+                Position = new Point(rect.X + rect.Width / 2 - ClientBounds.Width / 2, rect.Y + rect.Height / 2 - ClientBounds.Height / 2);
+
+                return true;
+            }
+
+            return false;
         }
 
         internal void Moved(int x, int y)
