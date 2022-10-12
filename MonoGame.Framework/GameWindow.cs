@@ -152,19 +152,15 @@ namespace Microsoft.Xna.Framework
         /// Buffered keyboard KeyUp event.
         /// </summary>
         public event EventHandler<InputKeyEventArgs> KeyUp;
-
-        // 2/18/2021: ARTHUR: Added drag and drop support.
+#endif
 
         /// <summary>
-        /// Raised when the user drags and drops a file into the game window.
+        /// This event is raised when user drops a file into the game window
         /// </summary>
+        /// <remarks>
+        /// This event is only supported on desktop platforms.
+        /// </remarks>
         public event EventHandler<FileDropEventArgs> FileDrop;
-
-        internal void OnFileDrop(FileDropEventArgs e)
-        {
-            EventHelpers.Raise(this, FileDrop, e);
-        }
-#endif
 
         #endregion Events
 
@@ -253,7 +249,12 @@ namespace Microsoft.Xna.Framework
 	    }
 #endif
 
-		protected internal abstract void SetSupportedOrientations (DisplayOrientation orientations);
+        internal void OnFileDrop(FileDropEventArgs e)
+        {
+            EventHelpers.Raise(this, FileDrop, e);
+        }
+
+        protected internal abstract void SetSupportedOrientations (DisplayOrientation orientations);
 
 	    /// <summary>
 	    /// Set the title of this window to the given string.
