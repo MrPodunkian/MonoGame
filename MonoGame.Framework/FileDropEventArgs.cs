@@ -1,25 +1,24 @@
-// MonoGame - Copyright (C) The MonoGame Team
+﻿// MonoGame - Copyright (C) The MonoGame Team
 // This file is subject to the terms and conditions defined in
 // file 'LICENSE.txt', which is part of this source code package.
 
 using System;
-using Microsoft.Xna.Framework.Input;
 
 namespace Microsoft.Xna.Framework
 {
     /// <summary>
-    /// This class is used in the <see cref="SdlGameWindow.FileDrop"/> event as <see cref="EventArgs"/>.
+    /// This class is used in the <see cref="GameWindow.FileDrop"/> event as <see cref="EventArgs"/>.
     /// </summary>
     public struct FileDropEventArgs
     {
-        public FileDropEventArgs(string file_path)
+        public FileDropEventArgs(string[] files)
         {
-            FilePath = file_path;
+            Files = files;
         }
 
         /// <summary>
-        /// The path to the file that was dropped onto the window.
+        /// The paths of dropped files
         /// </summary>
-        public readonly string FilePath;
+        public string[] Files { get; private set; }
     }
 }
