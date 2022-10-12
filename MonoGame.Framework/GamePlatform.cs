@@ -255,10 +255,7 @@ namespace Microsoft.Xna.Framework
         {
         }
 
-        public virtual void PollEvents()
-        {
 
-        }
 
         #endregion Methods
 
