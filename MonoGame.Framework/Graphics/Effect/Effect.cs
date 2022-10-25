@@ -48,6 +48,7 @@ namespace Microsoft.Xna.Framework.Graphics
 	    private readonly bool _isClone;
 
         protected EffectParameter _texelSizeParameter;
+        protected EffectParameter _textureSizeParameter;
 
         internal Effect(GraphicsDevice graphicsDevice)
 		{
@@ -185,6 +186,7 @@ namespace Microsoft.Xna.Framework.Graphics
         protected virtual void CacheParameters()
         {
             _texelSizeParameter = Parameters["TexelSize"];
+            _textureSizeParameter = Parameters["TextureSize"];
         }
 
         /// <summary>
@@ -210,6 +212,11 @@ namespace Microsoft.Xna.Framework.Graphics
                 if (_texelSizeParameter != null)
                 {
                     _texelSizeParameter.SetValue(new Vector2(texture_2d.TexelWidth, texture_2d.TexelHeight));
+                }
+
+                if (_textureSizeParameter != null)
+                {
+                    _textureSizeParameter.SetValue(new Vector2(texture_2d.Width, texture_2d.Height));
                 }
             }
         }
