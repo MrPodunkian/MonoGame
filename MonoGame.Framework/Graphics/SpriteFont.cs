@@ -27,7 +27,7 @@ namespace Microsoft.Xna.Framework.Graphics
         private char? _defaultCharacter;
         private int _defaultGlyphIndex = -1;
 		
-		private readonly Texture2D _texture;
+		private Texture2D _texture;
 
 		/// <summary>
 		/// All the glyphs in this SpriteFont.
@@ -115,7 +115,7 @@ namespace Microsoft.Xna.Framework.Graphics
         /// Gets the texture that this SpriteFont draws from.
         /// </summary>
         /// <remarks>Can be used to implement custom rendering of a SpriteFont</remarks>
-        public Texture2D Texture { get { return _texture; } }
+        public Texture2D Texture { get { return _texture; } set { _texture = value; } }
 
         /// <summary>
         /// Returns a copy of the dictionary containing the glyphs in this SpriteFont.
