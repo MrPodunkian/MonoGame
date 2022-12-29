@@ -23,6 +23,7 @@ struct VSOutput
 {
 	float4 position		: SV_Position;
 	float4 color		: COLOR0;
+	float4 color1		: COLOR1;
     float2 texCoord		: TEXCOORD0;
 	float2 texCoord1		: TEXCOORD1;
 	float2 texCoord2		: TEXCOORD2;
@@ -31,6 +32,7 @@ struct VSOutput
 
 VSOutput SpriteVertexShader(	float4 position	: POSITION0,
 								float4 color	: COLOR0,
+								float4 color1		: COLOR1,
 								float2 texCoord	: TEXCOORD0,
 								float2 texCoord1	: TEXCOORD1,
 								float2 texCoord2	: TEXCOORD2,
@@ -39,6 +41,7 @@ VSOutput SpriteVertexShader(	float4 position	: POSITION0,
 	VSOutput output;
     output.position = mul(position, MatrixTransform);
 	output.color = color;
+	output.color1 = color1;
 	output.texCoord = texCoord;
 	output.texCoord1 = texCoord1;
 	output.texCoord2 = texCoord2;

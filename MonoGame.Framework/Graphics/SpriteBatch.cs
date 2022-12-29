@@ -194,6 +194,7 @@ namespace Microsoft.Xna.Framework.Graphics
 				Vector2 position,
 				Rectangle? sourceRectangle,
 				Color color,
+                Color color1,
 				float rotation,
 				Vector2 origin,
 				Vector2 scale,
@@ -267,6 +268,7 @@ namespace Microsoft.Xna.Framework.Graphics
                         w,
                         h,
                         color,
+                        color1,
                         _texCoordTL,
                         _texCoordBR,
                         layerDepth,
@@ -283,6 +285,7 @@ namespace Microsoft.Xna.Framework.Graphics
                         MathF.Sin(rotation),
                         MathF.Cos(rotation),
                         color,
+                        color1,
                         _texCoordTL,
                         _texCoordBR,
                         layerDepth,
@@ -308,6 +311,7 @@ namespace Microsoft.Xna.Framework.Graphics
 				Vector2 position,
 				Rectangle? sourceRectangle,
 				Color color,
+                Color color1,
 				float rotation,
 				Vector2 origin,
 				float scale,
@@ -316,7 +320,7 @@ namespace Microsoft.Xna.Framework.Graphics
                 Matrix? transformMatrix = null)
 		{
             var scaleVec = new Vector2(scale, scale);
-            Draw(texture, position, sourceRectangle, color, rotation, origin, scaleVec, effects, layerDepth, transformMatrix);
+            Draw(texture, position, sourceRectangle, color, color1, rotation, origin, scaleVec, effects, layerDepth, transformMatrix);
 		}
 
         /// <summary>
@@ -334,6 +338,7 @@ namespace Microsoft.Xna.Framework.Graphics
 			Rectangle destinationRectangle,
 			Rectangle? sourceRectangle,
 			Color color,
+            Color color1,
 			float rotation,
 			Vector2 origin,
 			SpriteEffects effects,
@@ -411,6 +416,7 @@ namespace Microsoft.Xna.Framework.Graphics
                         destinationRectangle.Width,
                         destinationRectangle.Height,
                         color,
+                        color1,
                         _texCoordTL,
                         _texCoordBR,
                         layerDepth,
@@ -427,6 +433,7 @@ namespace Microsoft.Xna.Framework.Graphics
                         MathF.Sin(rotation),
                         MathF.Cos(rotation),
                         color,
+                        color1,
                         _texCoordTL,
                         _texCoordBR,
                         layerDepth,
@@ -452,7 +459,7 @@ namespace Microsoft.Xna.Framework.Graphics
         /// <param name="position">The drawing location on screen.</param>
         /// <param name="sourceRectangle">An optional region on the texture which will be rendered. If null - draws full texture.</param>
         /// <param name="color">A color mask.</param>
-		public void Draw (Texture2D texture, Vector2 position, Rectangle? sourceRectangle, Color color, Matrix? transformMatrix = null)
+		public void Draw (Texture2D texture, Vector2 position, Rectangle? sourceRectangle, Color color, Color color1, Matrix? transformMatrix = null)
 		{
 			CheckValid(texture);
             
@@ -488,6 +495,7 @@ namespace Microsoft.Xna.Framework.Graphics
                      size.X,
                      size.Y,
                      color,
+                     color1,
                      _texCoordTL,
                      _texCoordBR,
                      0,
@@ -505,7 +513,7 @@ namespace Microsoft.Xna.Framework.Graphics
         /// <param name="destinationRectangle">The drawing bounds on screen.</param>
         /// <param name="sourceRectangle">An optional region on the texture which will be rendered. If null - draws full texture.</param>
         /// <param name="color">A color mask.</param>
-        public void Draw(Texture2D texture, RectangleF destinationRectangle, Rectangle? sourceRectangle, Color color, Matrix? transformMatrix = null)
+        public void Draw(Texture2D texture, RectangleF destinationRectangle, Rectangle? sourceRectangle, Color color, Color color1, Matrix? transformMatrix = null)
         {
             CheckValid(texture);
 
@@ -537,6 +545,7 @@ namespace Microsoft.Xna.Framework.Graphics
                      destinationRectangle.Width,
                      destinationRectangle.Height,
                      color,
+                     color1,
                      _texCoordTL,
                      _texCoordBR,
                      0,
@@ -549,6 +558,7 @@ namespace Microsoft.Xna.Framework.Graphics
             RectangleF destinationRectangle,
             Rectangle? sourceRectangle,
             Color color,
+            Color color1,
             float rotation,
             Vector2 origin,
             SpriteEffects effects,
@@ -626,6 +636,7 @@ namespace Microsoft.Xna.Framework.Graphics
                         destinationRectangle.Width,
                         destinationRectangle.Height,
                         color,
+                        color1,
                         _texCoordTL,
                         _texCoordBR,
                         layerDepth,
@@ -642,6 +653,7 @@ namespace Microsoft.Xna.Framework.Graphics
                         (float)Math.Sin(rotation),
                         (float)Math.Cos(rotation),
                         color,
+                        color1,
                         _texCoordTL,
                         _texCoordBR,
                         layerDepth,
@@ -692,6 +704,7 @@ namespace Microsoft.Xna.Framework.Graphics
                      destinationRectangle.Width,
                      destinationRectangle.Height,
                      color,
+                     default(Color),
                      _texCoordTL,
                      _texCoordBR,
                      0,
@@ -721,6 +734,7 @@ namespace Microsoft.Xna.Framework.Graphics
                      texture.Width,
                      texture.Height,
                      color,
+                     default(Color),
                      Vector2.Zero,
                      Vector2.One,
                      0,
@@ -750,6 +764,7 @@ namespace Microsoft.Xna.Framework.Graphics
                      destinationRectangle.Width,
                      destinationRectangle.Height,
                      color,
+                     default(Color),
                      Vector2.Zero,
                      Vector2.One,
                      0,
@@ -765,7 +780,7 @@ namespace Microsoft.Xna.Framework.Graphics
         /// <param name="text">The text which will be drawn.</param>
         /// <param name="position">The drawing location on screen.</param>
         /// <param name="color">A color mask.</param>
-		public unsafe void DrawString (SpriteFont spriteFont, string text, Vector2 position, Color color, Matrix? transformMatrix = null)
+		public unsafe void DrawString (SpriteFont spriteFont, string text, Vector2 position, Color color, Color color1, Matrix? transformMatrix = null)
 		{
             CheckValid(spriteFont, text);
             
@@ -828,6 +843,7 @@ namespace Microsoft.Xna.Framework.Graphics
                          pCurrentGlyph->BoundsInTexture.Width,
                          pCurrentGlyph->BoundsInTexture.Height,
                          color,
+                         color1,
                          _texCoordTL,
                          _texCoordBR,
                          0,
@@ -853,11 +869,11 @@ namespace Microsoft.Xna.Framework.Graphics
         /// <param name="effects">Modificators for drawing. Can be combined.</param>
         /// <param name="layerDepth">A depth of the layer of this string.</param>
 		public void DrawString (
-			SpriteFont spriteFont, string text, Vector2 position, Color color,
+			SpriteFont spriteFont, string text, Vector2 position, Color color, Color color1,
             float rotation, Vector2 origin, float scale, SpriteEffects effects, float layerDepth)
 		{
 			var scaleVec = new Vector2(scale, scale);
-            DrawString(spriteFont, text, position, color, rotation, origin, scaleVec, effects, layerDepth);
+            DrawString(spriteFont, text, position, color, color1, rotation, origin, scaleVec, effects, layerDepth);
 		}
 
         /// <summary>
@@ -873,7 +889,7 @@ namespace Microsoft.Xna.Framework.Graphics
         /// <param name="effects">Modificators for drawing. Can be combined.</param>
         /// <param name="layerDepth">A depth of the layer of this string.</param>
 		public unsafe void DrawString (
-			SpriteFont spriteFont, string text, Vector2 position, Color color,
+			SpriteFont spriteFont, string text, Vector2 position, Color color, Color color1,
             float rotation, Vector2 origin, Vector2 scale, SpriteEffects effects, float layerDepth, Matrix? transformMatrix = null)
 		{
             CheckValid(spriteFont, text);
@@ -1021,6 +1037,7 @@ namespace Microsoft.Xna.Framework.Graphics
                             pCurrentGlyph->BoundsInTexture.Width * scale.X,
                             pCurrentGlyph->BoundsInTexture.Height * scale.Y,
                             color,
+                            color1,
                             _texCoordTL,
                             _texCoordBR,
                             layerDepth,
@@ -1037,6 +1054,7 @@ namespace Microsoft.Xna.Framework.Graphics
                             sin,
                             cos,
                             color,
+                            color1,
                             _texCoordTL,
                             _texCoordBR,
                             layerDepth,
@@ -1057,7 +1075,7 @@ namespace Microsoft.Xna.Framework.Graphics
         /// <param name="layerDepth">A depth of the layer of this string.</param>
         /// <param name="rtl">Text is Right to Left.</param>
 		public unsafe void DrawString(
-            SpriteFont spriteFont, string text, Vector2 position, Color color,
+            SpriteFont spriteFont, string text, Vector2 position, Color color, Color color1,
             float rotation, Vector2 origin, Vector2 scale, SpriteEffects effects, float layerDepth, bool rtl, Matrix? transformMatrix = null)
         {
             CheckValid(spriteFont, text);
@@ -1201,6 +1219,7 @@ namespace Microsoft.Xna.Framework.Graphics
                                 pCurrentGlyph->BoundsInTexture.Width * scale.X,
                                 pCurrentGlyph->BoundsInTexture.Height * scale.Y,
                                 color,
+                                color1,
                                 _texCoordTL,
                                 _texCoordBR,
                                 layerDepth,
@@ -1217,6 +1236,7 @@ namespace Microsoft.Xna.Framework.Graphics
                                 sin,
                                 cos,
                                 color,
+                                color1,
                                 _texCoordTL,
                                 _texCoordBR,
                                 layerDepth,
@@ -1237,7 +1257,7 @@ namespace Microsoft.Xna.Framework.Graphics
         /// <param name="text">The text which will be drawn.</param>
         /// <param name="position">The drawing location on screen.</param>
         /// <param name="color">A color mask.</param>
-		public unsafe void DrawString (SpriteFont spriteFont, StringBuilder text, Vector2 position, Color color, Matrix? transformMatrix = null)
+		public unsafe void DrawString (SpriteFont spriteFont, StringBuilder text, Vector2 position, Color color, Color color1, Matrix? transformMatrix = null)
 		{
             CheckValid(spriteFont, text);
             
@@ -1300,6 +1320,7 @@ namespace Microsoft.Xna.Framework.Graphics
                          pCurrentGlyph->BoundsInTexture.Width,
                          pCurrentGlyph->BoundsInTexture.Height,
                          color,
+                         color1,
                          _texCoordTL,
                          _texCoordBR,
                          0,
@@ -1325,11 +1346,11 @@ namespace Microsoft.Xna.Framework.Graphics
         /// <param name="effects">Modificators for drawing. Can be combined.</param>
         /// <param name="layerDepth">A depth of the layer of this string.</param>
 		public void DrawString (
-			SpriteFont spriteFont, StringBuilder text, Vector2 position, Color color,
+			SpriteFont spriteFont, StringBuilder text, Vector2 position, Color color, Color color1,
             float rotation, Vector2 origin, float scale, SpriteEffects effects, float layerDepth)
 		{
 			var scaleVec = new Vector2 (scale, scale);
-            DrawString(spriteFont, text, position, color, rotation, origin, scaleVec, effects, layerDepth);
+            DrawString(spriteFont, text, position, color, color1, rotation, origin, scaleVec, effects, layerDepth);
 		}
 
         /// <summary>
@@ -1345,7 +1366,7 @@ namespace Microsoft.Xna.Framework.Graphics
         /// <param name="effects">Modificators for drawing. Can be combined.</param>
         /// <param name="layerDepth">A depth of the layer of this string.</param>
 		public unsafe void DrawString (
-			SpriteFont spriteFont, StringBuilder text, Vector2 position, Color color,
+			SpriteFont spriteFont, StringBuilder text, Vector2 position, Color color, Color color1,
             float rotation, Vector2 origin, Vector2 scale, SpriteEffects effects, float layerDepth, Matrix? transformMatrix = null)
 		{
             CheckValid(spriteFont, text);
@@ -1492,6 +1513,7 @@ namespace Microsoft.Xna.Framework.Graphics
                             pCurrentGlyph->BoundsInTexture.Width * scale.X,
                             pCurrentGlyph->BoundsInTexture.Height * scale.Y,
                             color,
+                            color1,
                             _texCoordTL,
                             _texCoordBR,
                             layerDepth,
@@ -1508,6 +1530,7 @@ namespace Microsoft.Xna.Framework.Graphics
                             sin,
                             cos,
                             color,
+                            color1,
                             _texCoordTL,
                             _texCoordBR,
                             layerDepth,
@@ -1535,7 +1558,7 @@ namespace Microsoft.Xna.Framework.Graphics
         /// <param name="layerDepth">A depth of the layer of this string.</param>
         /// <param name="rtl">Text is Right to Left.</param>
 		public unsafe void DrawString(
-            SpriteFont spriteFont, StringBuilder text, Vector2 position, Color color,
+            SpriteFont spriteFont, StringBuilder text, Vector2 position, Color color, Color color1,
             float rotation, Vector2 origin, Vector2 scale, SpriteEffects effects, float layerDepth, bool rtl, Matrix? transformMatrix = null)
         {
             CheckValid(spriteFont, text);
@@ -1679,6 +1702,7 @@ namespace Microsoft.Xna.Framework.Graphics
                                 pCurrentGlyph->BoundsInTexture.Width * scale.X,
                                 pCurrentGlyph->BoundsInTexture.Height * scale.Y,
                                 color,
+                                color1,
                                 _texCoordTL,
                                 _texCoordBR,
                                 layerDepth,
@@ -1695,6 +1719,7 @@ namespace Microsoft.Xna.Framework.Graphics
                                 sin,
                                 cos,
                                 color,
+                                color1,
                                 _texCoordTL,
                                 _texCoordBR,
                                 layerDepth,
