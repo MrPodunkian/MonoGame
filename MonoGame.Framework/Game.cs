@@ -504,6 +504,11 @@ namespace Microsoft.Xna.Framework
         private Stopwatch _gameTimer;
         private long _previousTicks = 0;
         private int _updateFrameLag;
+
+        // When CPU gets choked, it's possible for multiple updates to be called per frame.
+        // This value can be referenced ingame to see which update in the frame is current being called.
+        public static int FrameUpdateCount;
+
 #if WINDOWS_UAP
         private readonly object _locker = new object();
 #endif
@@ -568,6 +573,8 @@ namespace Microsoft.Xna.Framework
             if (_accumulatedElapsedTime > _maxElapsedTime)
                 _accumulatedElapsedTime = _maxElapsedTime;
 
+            FrameUpdateCount = 0;
+
             if (IsFixedTimeStep)
             {
                 _gameTime.ElapsedGameTime = TargetElapsedTime;
@@ -579,6 +586,8 @@ namespace Microsoft.Xna.Framework
                     _gameTime.TotalGameTime += TargetElapsedTime;
                     _accumulatedElapsedTime -= TargetElapsedTime;
                     ++stepCount;
+
+                    FrameUpdateCount++;
 
                     DoUpdate(_gameTime);
                 }
@@ -613,8 +622,12 @@ namespace Microsoft.Xna.Framework
                 _gameTime.TotalGameTime += _accumulatedElapsedTime;
                 _accumulatedElapsedTime = TimeSpan.Zero;
 
+                FrameUpdateCount++;
+
                 DoUpdate(_gameTime);
             }
+
+            FrameUpdateCount = 0;
 
             // Draw unless the update suppressed it.
             if (_suppressDraw)
