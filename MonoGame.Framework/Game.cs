@@ -422,7 +422,12 @@ namespace Microsoft.Xna.Framework
         {
             _suppressDraw = true;
         }
-        
+
+        public GameTime GetGameTime()
+        {
+            return _gameTime;
+        }
+
         /// <summary>
         /// Run the game for one frame, then exit.
         /// </summary>

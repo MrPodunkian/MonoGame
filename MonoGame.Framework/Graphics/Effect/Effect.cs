@@ -49,6 +49,7 @@ namespace Microsoft.Xna.Framework.Graphics
 
         protected EffectParameter _texelSizeParameter;
         protected EffectParameter _textureSizeParameter;
+        protected EffectParameter _timeParameter;
 
         internal Effect(GraphicsDevice graphicsDevice)
 		{
@@ -187,6 +188,7 @@ namespace Microsoft.Xna.Framework.Graphics
         {
             _texelSizeParameter = Parameters["TexelSize"];
             _textureSizeParameter = Parameters["TextureSize"];
+            _timeParameter = Parameters["Time"];
         }
 
         /// <summary>
@@ -218,6 +220,11 @@ namespace Microsoft.Xna.Framework.Graphics
                 {
                     _textureSizeParameter.SetValue(new Vector2(texture_2d.Width, texture_2d.Height));
                 }
+            }
+
+            if (_timeParameter != null)
+            {
+                _timeParameter.SetValue((float)Game.Instance.GetGameTime().TotalGameTime.TotalSeconds);
             }
         }
 
