@@ -388,9 +388,12 @@ namespace Microsoft.Xna.Framework.Graphics
         }
 #endif
 
+        // ARTHUR: 4/27/2023
+        // Stubbed out this method and implemented it in Texture2D.StbSharp.cs
+
+#if ANDROID
         private void FillTextureFromStream(Stream stream)
         {
-#if ANDROID
             using (Bitmap image = BitmapFactory.DecodeStream(stream, null, new BitmapFactory.Options
             {
                 InScaled = false,
@@ -412,8 +415,8 @@ namespace Microsoft.Xna.Framework.Graphics
                 this.SetData<int>(pixels);
                 image.Recycle();
             }
-#endif
         }
+#endif
 
         // This method allows games that use Texture2D.FromStream
         // to reload their textures after the GL context is lost.

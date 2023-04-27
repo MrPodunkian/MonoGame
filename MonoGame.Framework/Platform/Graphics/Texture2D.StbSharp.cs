@@ -48,6 +48,37 @@ namespace Microsoft.Xna.Framework.Graphics
             return texture;
         }
 
+#if !ANDROID
+        // ARTHUR: 4/27/2023
+        // Mostly copied from above.
+        private void FillTextureFromStream(Stream stream)
+        {
+            // Rewind stream if it is at end
+            if (stream.CanSeek && stream.Length == stream.Position)
+            {
+                stream.Seek(0, SeekOrigin.Begin);
+            }
+
+            ImageResult result;
+            if (stream.CanSeek)
+            {
+                result = ImageResult.FromStream(stream, StbImageSharp.ColorComponents.RedGreenBlueAlpha);
+            }
+            else
+            {
+                // If stream doesnt provide seek functionaly, use MemoryStream instead
+                using (var ms = new MemoryStream())
+                {
+                    stream.CopyTo(ms);
+                    ms.Seek(0, SeekOrigin.Begin);
+                    result = ImageResult.FromStream(ms, StbImageSharp.ColorComponents.RedGreenBlueAlpha);
+                }
+            }
+
+            SetData(result.Data);
+        }
+#endif
+
         private void PlatformSaveAsJpeg(Stream stream, int width, int height)
         {
             SaveAsImage(stream, width, height, ImageWriterFormat.Jpg);
