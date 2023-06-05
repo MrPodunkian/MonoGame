@@ -4,6 +4,7 @@
 
 using System;
 using Microsoft.Xna.Framework.Audio;
+using Microsoft.Xna.Framework.Platform.Audio;
 
 namespace Microsoft.Xna.Framework
 {
@@ -34,6 +35,7 @@ namespace Microsoft.Xna.Framework
             DynamicSoundEffectInstanceManager.UpdatePlayingInstances();
             SoundEffectInstancePool.Update();
             Microphone.UpdateMicrophones();
+            DefaultDeviceChecker.Update();
         }
 
         private static void Initialize()

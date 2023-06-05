@@ -623,6 +623,71 @@ namespace MonoGame.OpenAL
 #endif
     }
 
+    // ARTHUR 6/2/2023
+
+    internal class ReopenDeviceExtension
+    {
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate bool ReopenDeviceDelegate(IntPtr device, string deviceName, int[] attributes);
+
+        private ReopenDeviceDelegate reopenDevice;
+        internal static IntPtr device;
+
+        public static ReopenDeviceExtension instance;
+
+        internal ReopenDeviceExtension()
+        {
+            IsInitialized = false;
+
+            if (!Alc.IsExtensionPresent(device, "ALC_ENUMERATE_ALL_EXT"))
+            {
+                Console.WriteLine("Enumerate all not supported.");
+                return;
+            }
+
+            if (!Alc.IsExtensionPresent(device, "ALC_SOFT_reopen_device") && !Alc.IsExtensionPresent(device, "ALC_SOFTX_reopen_device"))
+            {
+                Console.WriteLine("OpenAL Soft device reopen not supported.");
+                return;
+            }
+            try
+            {
+                reopenDevice = (ReopenDeviceDelegate)Marshal.GetDelegateForFunctionPointer(AL.alGetProcAddress("alcReopenDeviceSOFT"), typeof(ReopenDeviceDelegate));
+            }
+            catch (Exception)
+            {
+                return;
+            }
+
+            Console.WriteLine("OpenAL Soft device enabled.");
+
+            IsInitialized = true;
+        }
+
+        public bool ReopenDevice(string deviceName)
+        {
+            int[] attributes = new int[0];
+
+            Console.WriteLine($"Reopening device: {deviceName}");
+
+            return reopenDevice(device, deviceName, attributes);
+        }
+
+        public void Poll()
+        {
+            // Compare device names -- if they do not match, reopen the new device.
+            string default_device_name = Alc.GetString(IntPtr.Zero, 4114); // ALC_DEFAULT_ALL_DEVICES_SPECIFIER
+            string device_name = Alc.GetString(IntPtr.Zero, 4115); // ALC_ALL_DEVICES_SPECIFIER
+
+            if (default_device_name != device_name)
+            {
+                ReopenDevice(device_name);
+            }
+        }
+
+        internal bool IsInitialized { get; private set; }
+    }
+
     internal class XRamExtension
     {
         internal enum XRamStorage

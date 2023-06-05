@@ -151,6 +151,19 @@ namespace Microsoft.Xna.Framework.Audio
             {
                 _device = Alc.OpenDevice(string.Empty);
                 EffectsExtension.device = _device;
+
+                string default_device_name = Alc.GetString(_device, 4100);
+                string device_name = Alc.GetString(_device, 4101);
+                string extensions = Alc.GetString(_device, 4102);
+
+                Console.WriteLine($"OpenAL default device name: {default_device_name}");
+
+                Console.WriteLine($"OpenAL device name: {device_name}");
+                Console.WriteLine($"Available extensions: {extensions}");
+
+                ReopenDeviceExtension.device = _device;
+                ReopenDeviceExtension.instance = new ReopenDeviceExtension();
+
             }
             catch (Exception ex)
             {
