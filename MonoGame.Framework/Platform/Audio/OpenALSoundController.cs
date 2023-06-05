@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 using MonoGame.Framework.Utilities;
 using MonoGame.OpenAL;
 using MonoGame.OpenGL;
+using System.Threading;
 
 #if ANDROID
 using System.Globalization;
@@ -103,10 +104,16 @@ namespace Microsoft.Xna.Framework.Audio
         public bool SupportsEfx { get; private set; }
         public bool SupportsIeee { get; private set; }
 
+#if DESKTOPGL
+        static readonly object deviceChangeMutex = new object();
+        readonly Thread deviceChangeThread;
+        public bool deviceChangeCancelled = false;
+#endif
+
         /// <summary>
         /// Sets up the hardware resources used by the controller.
         /// </summary>
-		private OpenALSoundController()
+        private OpenALSoundController()
         {
             if (AL.NativeLibrary == IntPtr.Zero)
                 throw new DllNotFoundException("Couldn't initialize OpenAL because the native binaries couldn't be found.");
@@ -118,10 +125,36 @@ namespace Microsoft.Xna.Framework.Audio
 
             if (Alc.IsExtensionPresent(_device, "ALC_EXT_CAPTURE"))
                 Microphone.PopulateCaptureDevices();
+#if DESKTOPGL
+            if (Alc.IsExtensionPresent(_device, "ALC_ENUMERATE_ALL_EXT"))
+            {
+                string default_device_name = Alc.GetString(_device, 4114); // ALC_DEFAULT_ALL_DEVICES_SPECIFIER
+                //string extensions = Alc.GetString(_device, 4102);
 
+                Console.WriteLine($"OpenAL default device name: {default_device_name}");
+
+                string device_name = Alc.GetString(_device, 4115); // ALC_ALL_DEVICES_SPECIFIER
+                Console.WriteLine($"Using audio device: {device_name}.");
+                //Console.WriteLine($"Available extensions: {extensions}");
+
+                ReopenDeviceExtension.device = _device;
+                ReopenDeviceExtension.EnsureInitialized();
+
+                lock (deviceChangeMutex)
+                {
+                    deviceChangeThread = new Thread(MonitorDefaultDeviceChange)
+                    {
+                        Priority = ThreadPriority.Lowest,
+                        IsBackground = true
+                    };
+
+                    deviceChangeThread.Start();
+                }
+            }
+#endif
             // We have hardware here and it is ready
 
-			allSourcesArray = new int[MAX_NUMBER_OF_SOURCES];
+            allSourcesArray = new int[MAX_NUMBER_OF_SOURCES];
 			AL.GenSources(allSourcesArray);
             ALHelper.CheckError("Failed to generate sources.");
             Filter = 0;
@@ -138,6 +171,18 @@ namespace Microsoft.Xna.Framework.Audio
             Dispose(false);
         }
 
+#if DESKTOPGL
+        private void MonitorDefaultDeviceChange()
+        {
+            while (!deviceChangeCancelled)
+            {
+                Thread.Sleep((int)1000);
+
+                ReopenDeviceExtension.Instance.Poll();
+            }
+        }
+#endif
+
         /// <summary>
         /// Open the sound device, sets up an audio context, and makes the new context
         /// the current context. Note that this method will stop the playback of
@@ -151,19 +196,6 @@ namespace Microsoft.Xna.Framework.Audio
             {
                 _device = Alc.OpenDevice(string.Empty);
                 EffectsExtension.device = _device;
-
-                string default_device_name = Alc.GetString(_device, 4100);
-                string device_name = Alc.GetString(_device, 4101);
-                string extensions = Alc.GetString(_device, 4102);
-
-                Console.WriteLine($"OpenAL default device name: {default_device_name}");
-
-                Console.WriteLine($"OpenAL device name: {device_name}");
-                Console.WriteLine($"Available extensions: {extensions}");
-
-                ReopenDeviceExtension.device = _device;
-                ReopenDeviceExtension.instance = new ReopenDeviceExtension();
-
             }
             catch (Exception ex)
             {
@@ -381,6 +413,9 @@ namespace Microsoft.Xna.Framework.Audio
         /// </summary>
         public void Dispose()
         {
+#if DESKTOPGL
+            deviceChangeCancelled = true;
+#endif
             Dispose(true);
             GC.SuppressFinalize(this);
         }

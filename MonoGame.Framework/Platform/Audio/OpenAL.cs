@@ -633,7 +633,25 @@ namespace MonoGame.OpenAL
         private ReopenDeviceDelegate reopenDevice;
         internal static IntPtr device;
 
-        public static ReopenDeviceExtension instance;
+        protected static ReopenDeviceExtension _instance;
+
+        internal static ReopenDeviceExtension Instance
+        {
+            get
+            {
+                EnsureInitialized();
+
+                return _instance;
+            }
+        }
+
+        public static void EnsureInitialized()
+        {
+            if (_instance == null)
+            {
+                _instance = new ReopenDeviceExtension();
+            }
+        }
 
         internal ReopenDeviceExtension()
         {
@@ -641,13 +659,13 @@ namespace MonoGame.OpenAL
 
             if (!Alc.IsExtensionPresent(device, "ALC_ENUMERATE_ALL_EXT"))
             {
-                Console.WriteLine("Enumerate all not supported.");
+                Console.WriteLine("Cannot detect audio device changes (Enumerate extension not available)");
                 return;
             }
 
             if (!Alc.IsExtensionPresent(device, "ALC_SOFT_reopen_device") && !Alc.IsExtensionPresent(device, "ALC_SOFTX_reopen_device"))
             {
-                Console.WriteLine("OpenAL Soft device reopen not supported.");
+                Console.WriteLine("Cannot detect audio device changes (Reopen extension not available)");
                 return;
             }
             try
@@ -659,7 +677,7 @@ namespace MonoGame.OpenAL
                 return;
             }
 
-            Console.WriteLine("OpenAL Soft device enabled.");
+            Console.WriteLine("Monitoring audio device changes.");
 
             IsInitialized = true;
         }
@@ -668,7 +686,7 @@ namespace MonoGame.OpenAL
         {
             int[] attributes = new int[0];
 
-            Console.WriteLine($"Reopening device: {deviceName}");
+            Console.WriteLine($"Switching audio device to {deviceName}.");
 
             return reopenDevice(device, deviceName, attributes);
         }

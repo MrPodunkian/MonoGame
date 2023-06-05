@@ -12,6 +12,5 @@
     <Compile Include="Platform\Audio\OpenALSoundController.cs" />
     <Compile Include="Platform\Audio\SoundEffect.OpenAL.cs" />
     <Compile Include="Platform\Audio\SoundEffectInstance.OpenAL.cs" />
-	<Compile Include="Platform\Audio\DefaultDeviceChecker.OpenAL.cs" />
   </ItemGroup>
 </Project>
