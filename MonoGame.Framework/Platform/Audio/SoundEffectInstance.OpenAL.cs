@@ -183,7 +183,7 @@ namespace Microsoft.Xna.Framework.Audio
             {
                 if (HasSourceId && AL.IsSource(SourceId))
                 {
-                    // ARTHUR 6/24/2021: It seems that sound sourcehs aren't properly resetting their values, causing sounds to be distorted (pitched incorrectly) when recycled.
+                    // ARTHUR 6/24/2021: It seems that sound sources aren't properly resetting their values, causing sounds to be distorted (pitched incorrectly) when recycled.
                     AL.Source(SourceId, ALSourceb.Looping, false);
                     AL.Source(SourceId, ALSource3f.Position, 0.0F, 0.0f, 0.1f);
                     AL.Source(SourceId, ALSourcef.Pitch, 1.0F);
