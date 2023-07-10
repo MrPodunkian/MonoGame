@@ -227,6 +227,16 @@ internal static class Sdl
     private delegate IntPtr d_sdl_creatergbsurfacefrom(IntPtr pixels, int width, int height, int depth, int pitch, uint rMask, uint gMask, uint bMask, uint aMask);
     private static d_sdl_creatergbsurfacefrom SDL_CreateRGBSurfaceFrom = FuncLoader.LoadFunction<d_sdl_creatergbsurfacefrom>(NativeLibrary, "SDL_CreateRGBSurfaceFrom");
 
+    // ARTHUR: 7/9/2023 - Added for IME support
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    public delegate void d_sdl_starttextinput();
+    public static d_sdl_starttextinput StartTextInput = FuncLoader.LoadFunction<d_sdl_starttextinput>(NativeLibrary, "SDL_StartTextInput");
+
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    public delegate void d_sdl_stoptextinput();
+    public static d_sdl_stoptextinput StopTextInput = FuncLoader.LoadFunction<d_sdl_stoptextinput>(NativeLibrary, "SDL_StopTextInput");
+
+
     public static IntPtr CreateRGBSurfaceFrom(byte[] pixels, int width, int height, int depth, int pitch, uint rMask, uint gMask, uint bMask, uint aMask)
     {
         var handle = GCHandle.Alloc(pixels, GCHandleType.Pinned);

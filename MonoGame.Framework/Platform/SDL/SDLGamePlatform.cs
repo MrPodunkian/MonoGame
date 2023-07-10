@@ -200,6 +200,15 @@ namespace Microsoft.Xna.Framework
                             }
                         }
                         break;
+                    // ARTHUR: 7/9/2023 - for CJK text editing.
+                    case Sdl.EventType.TextEditing:
+                        unsafe
+                        {
+                            string text = Marshal.PtrToStringUTF8((IntPtr)ev.Edit.Text);
+
+                            _view.OnTextEdit(new TextEditEventArgs(text));
+                        }
+                        break;
                     case Sdl.EventType.WindowEvent:
 
                         // If the ID is not the same as our main window ID

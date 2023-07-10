@@ -141,6 +141,8 @@ namespace Microsoft.Xna.Framework
 		/// </remarks>
 		public event EventHandler<TextInputEventArgs> TextInput;
 
+        public event EventHandler<TextEditEventArgs> TextEdit;
+
         internal bool IsTextInputHandled { get { return TextInput != null; } }
 
         /// <summary>
@@ -239,6 +241,12 @@ namespace Microsoft.Xna.Framework
 		{
             EventHelpers.Raise(this, TextInput, e);
 		}
+
+        // ARTHUR: 7/9/2023 - For CJK text entry.
+        internal void OnTextEdit(TextEditEventArgs e)
+        {
+            EventHelpers.Raise(this, TextEdit, e);
+        }
         internal void OnKeyDown(InputKeyEventArgs e)
 	    {
             EventHelpers.Raise(this, KeyDown, e);
@@ -271,5 +279,15 @@ namespace Microsoft.Xna.Framework
             return window;
         }
 #endif
+
+        public virtual void StartTextInput()
+        {
+
+        }
+
+        public virtual void StopTextInput()
+        {
+
+        }
     }
 }

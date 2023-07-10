@@ -28,4 +28,14 @@ namespace Microsoft.Xna.Framework
         /// </summary>
         public readonly Keys Key;
     }
+
+    public struct TextEditEventArgs
+    {
+        public TextEditEventArgs(string text)
+        {
+            Text = text;
+        }
+
+        public readonly string Text;
+    }
 }

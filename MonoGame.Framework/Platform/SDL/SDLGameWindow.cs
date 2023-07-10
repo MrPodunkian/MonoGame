@@ -235,6 +235,16 @@ namespace Microsoft.Xna.Framework
             return 0;
         }
 
+        public override void StartTextInput()
+        {
+            Sdl.StartTextInput();
+        }
+
+        public override void StopTextInput()
+        {
+            Sdl.StopTextInput();
+        }
+
         public void SetCursorVisible(bool visible)
         {
             _mouseVisible = visible;
