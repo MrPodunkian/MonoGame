@@ -178,6 +178,23 @@ namespace Microsoft.Xna.Framework.Graphics
                 throw new InvalidOperationException("DrawString was called, but Begin has not yet been called. Begin must be called successfully before you can call DrawString.");
         }
 
+        public static Matrix? LegacyDrawMatrix;
+        public static Color LegacyDrawColor1;
+
+        // For compatibility with FontStash
+        public void Draw(Texture2D texture,
+                Vector2 position,
+                Rectangle? sourceRectangle,
+                Color color,
+                float rotation,
+                Vector2 origin,
+                Vector2 scale,
+                SpriteEffects effects,
+                float layerDepth)
+        {
+            Draw(texture, position, sourceRectangle, color, LegacyDrawColor1, rotation, origin, scale, effects, layerDepth, LegacyDrawMatrix);
+        }
+
         /// <summary>
         /// Submit a sprite for drawing in the current batch.
         /// </summary>
