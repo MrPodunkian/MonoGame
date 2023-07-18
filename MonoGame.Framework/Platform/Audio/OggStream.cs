@@ -17,7 +17,7 @@ using MonoGame.OpenAL;
 
 namespace Microsoft.Xna.Framework.Audio
 {
-    internal class OggStream : IDisposable
+    public class OggStream : IDisposable
     {
         const int DefaultBufferCount = 3;
 
