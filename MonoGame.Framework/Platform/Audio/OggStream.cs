@@ -274,6 +274,8 @@ namespace Microsoft.Xna.Framework.Audio
         {
             if (Reader != null)
             {
+                Empty(); // ARTHUR 7/21/2023: Seems to fix an issue where FillBuffer throws an AL Error.
+
                 Reader.Dispose();
                 Reader = null;
             }
