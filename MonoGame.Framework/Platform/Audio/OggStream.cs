@@ -274,8 +274,6 @@ namespace Microsoft.Xna.Framework.Audio
         {
             if (Reader != null)
             {
-                Empty(); // ARTHUR 7/21/2023: Seems to fix an issue where FillBuffer throws an AL Error.
-
                 Reader.Dispose();
                 Reader = null;
             }
@@ -466,7 +464,7 @@ namespace Microsoft.Xna.Framework.Audio
                             if (stream.FinishedAction != null)
                                 stream.FinishedAction.Invoke();
                         }
-                        else if (!finished && bufferFilled > 0) // queue only successfully filled buffers
+                        else if (/*!finished &&*/ bufferFilled > 0) // queue only successfully filled buffers // ARTHUR 8/8/2023: Removed finished check. When a source loops, it can populate the buffer while 'finished' is true.
                         {
                             AL.SourceQueueBuffers(stream.alSourceId, bufferFilled, tempBuffers);
                             ALHelper.CheckError("Failed to queue buffers.");
