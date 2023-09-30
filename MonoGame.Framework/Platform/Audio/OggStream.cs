@@ -142,7 +142,9 @@ namespace Microsoft.Xna.Framework.Audio
             var state = AL.GetSourceState(alSourceId);
             ALHelper.CheckError("Failed to get source state.");
             if (state == ALSourceState.Playing || state == ALSourceState.Paused)
+            {
                 StopPlayback();
+            }
 
             lock (stopMutex)
             {
@@ -151,7 +153,9 @@ namespace Microsoft.Xna.Framework.Audio
                 lock (prepareMutex)
                 {
                     if (state != ALSourceState.Initial)
+                    {
                         Empty(); // force the queued buffers to be unqueued to avoid issues on Mac
+                    }
                 }
             }
             AL.Source(alSourceId, ALSourcei.Buffer, 0);
@@ -403,18 +407,29 @@ namespace Microsoft.Xna.Framework.Audio
             while (!cancelled)
             {
                 Thread.Sleep((int) (1000 / ((UpdateRate <= 0) ? 1 : UpdateRate)));
-                if (cancelled) break;
+
+                if (cancelled)
+                {
+                    break;
+                }
 
                 threadLocalStreams.Clear();
-                lock (iterationMutex) threadLocalStreams.AddRange(streams);
+                lock (iterationMutex)
+                {
+                    threadLocalStreams.AddRange(streams);
+                }
 
                 foreach (var stream in threadLocalStreams)
                 {
                     lock (stream.prepareMutex)
                     {
                         lock (iterationMutex)
+                        {
                             if (!streams.Contains(stream))
+                            {
                                 continue;
+                            }
+                        }
 
                         bool finished = false;
 
@@ -425,18 +440,25 @@ namespace Microsoft.Xna.Framework.Audio
                         AL.GetSource(stream.alSourceId, ALGetSourcei.BuffersProcessed, out processed);
                         ALHelper.CheckError("Failed to fetch processed buffers.");
 
-                        if (processed == 0 && queued == stream.BufferCount) continue;
+                        if (processed == 0 && queued == stream.BufferCount)
+                        {
+                            continue;
+                        }
 
                         int[] tempBuffers;
+
                         if (processed > 0)
                         {
                             tempBuffers = AL.SourceUnqueueBuffers(stream.alSourceId, processed);
                             ALHelper.CheckError("Failed to unqueue buffers.");
                         }
                         else
+                        {
                             tempBuffers = stream.alBufferIds.Skip(queued).ToArray();
+                        }
 
                         int bufferFilled = 0;
+
                         for (int i = 0; i < tempBuffers.Length && !pendingFinish; i++)
                         {
                             finished |= FillBuffer(stream, tempBuffers[i]);
@@ -459,10 +481,16 @@ namespace Microsoft.Xna.Framework.Audio
                         if (pendingFinish && queued == 0)
                         {
                             pendingFinish = false;
+
                             lock (iterationMutex)
+                            {
                                 streams.Remove(stream);
+                            }
+
                             if (stream.FinishedAction != null)
+                            {
                                 stream.FinishedAction.Invoke();
+                            }
                         }
                         else if (/*!finished &&*/ bufferFilled > 0) // queue only successfully filled buffers // ARTHUR 8/8/2023: Removed finished check. When a source loops, it can populate the buffer while 'finished' is true.
                         {
