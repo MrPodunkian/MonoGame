@@ -27,7 +27,7 @@ namespace Microsoft.Xna.Framework.Audio
         internal readonly int alSourceId;
         internal readonly int[] alBufferIds;
 
-        readonly string oggFileName;
+        public readonly string oggFileName;
 
         internal VorbisReader Reader { get; private set; }
         internal bool Ready { get; private set; }
@@ -306,8 +306,6 @@ namespace Microsoft.Xna.Framework.Audio
         readonly Thread underlyingThread;
         volatile bool cancelled;
 
-        bool pendingFinish;
-
         public float UpdateRate { get; private set; }
         public int BufferSize { get; private set; }
 
@@ -330,7 +328,6 @@ namespace Microsoft.Xna.Framework.Audio
         {
             UpdateRate = updateRate;
             BufferSize = bufferSize;
-            pendingFinish = false;
 
             lock (singletonMutex)
             {
@@ -384,6 +381,7 @@ namespace Microsoft.Xna.Framework.Audio
                 readSamples = stream.Reader.ReadSamples(readSampleBuffer, 0, BufferSize);
                 CastBuffer(readSampleBuffer, castBuffer, readSamples);
             }
+
             AL.BufferData(bufferId, stream.Reader.Channels == 1 ? ALFormat.Mono16 : ALFormat.Stereo16, castBuffer,
                 readSamples * sizeof(short), stream.Reader.SampleRate);
             ALHelper.CheckError("Failed to fill buffer, readSamples = {0}, SampleRate = {1}, buffer.Length = {2}.", readSamples, stream.Reader.SampleRate, castBuffer.Length);
@@ -459,7 +457,9 @@ namespace Microsoft.Xna.Framework.Audio
 
                         int bufferFilled = 0;
 
-                        for (int i = 0; i < tempBuffers.Length && !pendingFinish; i++)
+                        bool has_finished = false;
+
+                        for (int i = 0; i < tempBuffers.Length && !has_finished; i++)
                         {
                             finished |= FillBuffer(stream, tempBuffers[i]);
                             bufferFilled++;
@@ -473,15 +473,13 @@ namespace Microsoft.Xna.Framework.Audio
                                 }
                                 else
                                 {
-                                    pendingFinish = true;
+                                    has_finished = true;
                                 }
                             }
                         }
 
-                        if (pendingFinish && queued == 0)
+                        if (has_finished && queued == 0)
                         {
-                            pendingFinish = false;
-
                             lock (iterationMutex)
                             {
                                 streams.Remove(stream);
