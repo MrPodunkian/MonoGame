@@ -17,7 +17,7 @@ using MonoGame.OpenGL;
 
 namespace Microsoft.Xna.Framework
 {
-    internal class Threading
+    public class Threading
     {
         static int _mainThreadId;
 
@@ -94,7 +94,7 @@ namespace Microsoft.Xna.Framework
         /// If the current thread is the UI thread, the action will run immediately.
         /// </summary>
         /// <param name="action">The action to be run on the UI thread</param>
-        internal static void BlockOnUIThread(Action action)
+        public static void BlockOnUIThread(Action action)
         {
             if (action == null)
                 throw new ArgumentNullException("action");
