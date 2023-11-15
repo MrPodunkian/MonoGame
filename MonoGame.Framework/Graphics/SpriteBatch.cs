@@ -36,6 +36,8 @@ namespace Microsoft.Xna.Framework.Graphics
         /// </summary>
         public static float TextureTuckAmount = 0.0F;
 
+        public delegate void ModifyCharPosition(int char_index, ref Vector2 pos);
+
         private void _TuckTextureCoordinates(Texture2D texture, ref Vector2 tl, ref Vector2 br)
         {
             tl.X += TextureTuckAmount * texture.TexelWidth;
@@ -180,6 +182,8 @@ namespace Microsoft.Xna.Framework.Graphics
 
         public static Matrix? LegacyDrawMatrix;
         public static Color LegacyDrawColor1;
+        public static ModifyCharPosition LegacyModifyChar;
+        public static int LegacyCharIndex;
 
         // For compatibility with FontStash
         public void Draw(Texture2D texture,
@@ -192,7 +196,14 @@ namespace Microsoft.Xna.Framework.Graphics
                 SpriteEffects effects,
                 float layerDepth)
         {
+            if (LegacyModifyChar != null)
+            {
+                LegacyModifyChar(LegacyCharIndex, ref position);
+            }
+
             Draw(texture, position, sourceRectangle, color, LegacyDrawColor1, rotation, origin, scale, effects, layerDepth, LegacyDrawMatrix);
+
+            LegacyCharIndex++;
         }
 
         /// <summary>
@@ -797,7 +808,7 @@ namespace Microsoft.Xna.Framework.Graphics
         /// <param name="text">The text which will be drawn.</param>
         /// <param name="position">The drawing location on screen.</param>
         /// <param name="color">A color mask.</param>
-		public unsafe void DrawString (SpriteFont spriteFont, string text, Vector2 position, Color color, Color color1, Matrix? transformMatrix = null)
+		public unsafe void DrawString (SpriteFont spriteFont, string text, Vector2 position, Color color, Color color1, Matrix? transformMatrix = null, ModifyCharPosition modify_char = null)
 		{
             CheckValid(spriteFont, text);
             
@@ -842,6 +853,11 @@ namespace Microsoft.Xna.Framework.Graphics
                 p.X += pCurrentGlyph->Cropping.X;
                 p.Y += pCurrentGlyph->Cropping.Y;
                 p += position;
+
+                    if (modify_char != null)
+                    {
+                        modify_char(i, ref p);
+                    }
 
                 var item = _batcher.CreateBatchItem();
                 item.Texture = spriteFont.Texture;
@@ -907,7 +923,7 @@ namespace Microsoft.Xna.Framework.Graphics
         /// <param name="layerDepth">A depth of the layer of this string.</param>
 		public unsafe void DrawString (
 			SpriteFont spriteFont, string text, Vector2 position, Color color, Color color1,
-            float rotation, Vector2 origin, Vector2 scale, SpriteEffects effects, float layerDepth, Matrix? transformMatrix = null)
+            float rotation, Vector2 origin, Vector2 scale, SpriteEffects effects, float layerDepth, Matrix? transformMatrix = null, ModifyCharPosition modify_char = null)
 		{
             CheckValid(spriteFont, text);
             
@@ -1020,7 +1036,12 @@ namespace Microsoft.Xna.Framework.Graphics
                     p.Y += pCurrentGlyph->BoundsInTexture.Height - spriteFont.LineSpacing;
                 p.Y += pCurrentGlyph->Cropping.Y;
 
-                Vector2.Transform(ref p, ref transformation, out p);
+                    if (modify_char != null)
+                    {
+                        modify_char(i, ref p);
+                    }
+
+                    Vector2.Transform(ref p, ref transformation, out p);
 
                 var item = _batcher.CreateBatchItem();               
                 item.Texture = spriteFont.Texture;
@@ -1093,7 +1114,7 @@ namespace Microsoft.Xna.Framework.Graphics
         /// <param name="rtl">Text is Right to Left.</param>
 		public unsafe void DrawString(
             SpriteFont spriteFont, string text, Vector2 position, Color color, Color color1,
-            float rotation, Vector2 origin, Vector2 scale, SpriteEffects effects, float layerDepth, bool rtl, Matrix? transformMatrix = null)
+            float rotation, Vector2 origin, Vector2 scale, SpriteEffects effects, float layerDepth, bool rtl, Matrix? transformMatrix = null, ModifyCharPosition modify_char = null)
         {
             CheckValid(spriteFont, text);
 
@@ -1205,6 +1226,11 @@ namespace Microsoft.Xna.Framework.Graphics
                         p.Y += pCurrentGlyph->BoundsInTexture.Height - spriteFont.LineSpacing;
                     p.Y += pCurrentGlyph->Cropping.Y;
 
+                    if (modify_char != null)
+                    {
+                        modify_char(i, ref p);
+                    }
+
                     Vector2.Transform(ref p, ref transformation, out p);
 
                     var item = _batcher.CreateBatchItem();
@@ -1274,7 +1300,7 @@ namespace Microsoft.Xna.Framework.Graphics
         /// <param name="text">The text which will be drawn.</param>
         /// <param name="position">The drawing location on screen.</param>
         /// <param name="color">A color mask.</param>
-		public unsafe void DrawString (SpriteFont spriteFont, StringBuilder text, Vector2 position, Color color, Color color1, Matrix? transformMatrix = null)
+		public unsafe void DrawString (SpriteFont spriteFont, StringBuilder text, Vector2 position, Color color, Color color1, Matrix? transformMatrix = null, ModifyCharPosition modify_char = null)
 		{
             CheckValid(spriteFont, text);
             
@@ -1319,8 +1345,13 @@ namespace Microsoft.Xna.Framework.Graphics
                 p.X += pCurrentGlyph->Cropping.X;
                 p.Y += pCurrentGlyph->Cropping.Y;
                 p += position;
-                
-                var item = _batcher.CreateBatchItem();
+
+                    if (modify_char != null)
+                    {
+                        modify_char(i, ref p);
+                    }
+
+                    var item = _batcher.CreateBatchItem();
                 item.Texture = spriteFont.Texture;
                 item.SortKey = sortKey;
             
@@ -1384,7 +1415,7 @@ namespace Microsoft.Xna.Framework.Graphics
         /// <param name="layerDepth">A depth of the layer of this string.</param>
 		public unsafe void DrawString (
 			SpriteFont spriteFont, StringBuilder text, Vector2 position, Color color, Color color1,
-            float rotation, Vector2 origin, Vector2 scale, SpriteEffects effects, float layerDepth, Matrix? transformMatrix = null)
+            float rotation, Vector2 origin, Vector2 scale, SpriteEffects effects, float layerDepth, Matrix? transformMatrix = null, ModifyCharPosition modify_char = null)
 		{
             CheckValid(spriteFont, text);
             
@@ -1495,6 +1526,11 @@ namespace Microsoft.Xna.Framework.Graphics
                 if (flippedVert)
                     p.Y += pCurrentGlyph->BoundsInTexture.Height - spriteFont.LineSpacing;
                 p.Y += pCurrentGlyph->Cropping.Y;
+
+                    if (modify_char != null)
+                    {
+                        modify_char(i, ref position);
+                    }
 
                 Vector2.Transform(ref p, ref transformation, out p);
                 
