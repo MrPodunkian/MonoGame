@@ -461,12 +461,6 @@ namespace Microsoft.Xna.Framework.Audio
 
                         for (int i = 0; i < tempBuffers.Length && !has_finished; i++)
                         {
-                            // ARTHUR 4/17/2024: Streams are attempting to fill buffers during game exit. Potential fix?
-                            if (cancelled)
-                            {
-                                break;
-                            }
-
                             finished |= FillBuffer(stream, tempBuffers[i]);
                             bufferFilled++;
 
