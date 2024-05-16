@@ -27,7 +27,7 @@ namespace Microsoft.Xna.Framework.Audio
         internal readonly int alSourceId;
         internal readonly int[] alBufferIds;
 
-        public readonly string oggFileName;
+        readonly string oggFileName;
 
         internal VorbisReader Reader { get; private set; }
         internal bool Ready { get; private set; }
@@ -142,9 +142,7 @@ namespace Microsoft.Xna.Framework.Audio
             var state = AL.GetSourceState(alSourceId);
             ALHelper.CheckError("Failed to get source state.");
             if (state == ALSourceState.Playing || state == ALSourceState.Paused)
-            {
                 StopPlayback();
-            }
 
             lock (stopMutex)
             {
@@ -153,9 +151,7 @@ namespace Microsoft.Xna.Framework.Audio
                 lock (prepareMutex)
                 {
                     if (state != ALSourceState.Initial)
-                    {
                         Empty(); // force the queued buffers to be unqueued to avoid issues on Mac
-                    }
                 }
             }
             AL.Source(alSourceId, ALSourcei.Buffer, 0);
@@ -296,7 +292,6 @@ namespace Microsoft.Xna.Framework.Audio
 
         readonly object iterationMutex = new object();
         readonly object readMutex = new object();
-        readonly object fillBufferMutex = new object();
 
         readonly float[] readSampleBuffer;
         readonly short[] castBuffer;
@@ -306,6 +301,8 @@ namespace Microsoft.Xna.Framework.Audio
 
         readonly Thread underlyingThread;
         volatile bool cancelled;
+
+        bool pendingFinish;
 
         public float UpdateRate { get; private set; }
         public int BufferSize { get; private set; }
@@ -329,6 +326,7 @@ namespace Microsoft.Xna.Framework.Audio
         {
             UpdateRate = updateRate;
             BufferSize = bufferSize;
+            pendingFinish = false;
 
             lock (singletonMutex)
             {
@@ -354,14 +352,9 @@ namespace Microsoft.Xna.Framework.Audio
             {
                 Debug.Assert(Instance == this, "Two instances running, somehow...?");
 
-                lock (fillBufferMutex)
-                {
-                    cancelled = true;
-                    lock (iterationMutex)
-                    {
-                        streams.Clear();
-                    }
-                }
+                cancelled = true;
+                lock (iterationMutex)
+                    streams.Clear();
 
                 Instance = null;
             }
@@ -387,7 +380,6 @@ namespace Microsoft.Xna.Framework.Audio
                 readSamples = stream.Reader.ReadSamples(readSampleBuffer, 0, BufferSize);
                 CastBuffer(readSampleBuffer, castBuffer, readSamples);
             }
-
             AL.BufferData(bufferId, stream.Reader.Channels == 1 ? ALFormat.Mono16 : ALFormat.Stereo16, castBuffer,
                 readSamples * sizeof(short), stream.Reader.SampleRate);
             ALHelper.CheckError("Failed to fill buffer, readSamples = {0}, SampleRate = {1}, buffer.Length = {2}.", readSamples, stream.Reader.SampleRate, castBuffer.Length);
@@ -411,116 +403,90 @@ namespace Microsoft.Xna.Framework.Audio
             while (!cancelled)
             {
                 Thread.Sleep((int) (1000 / ((UpdateRate <= 0) ? 1 : UpdateRate)));
+                if (cancelled) break;
 
-                if (cancelled)
-                {
-                    break;
-                }
-                lock (fillBufferMutex)
-                {
-                    threadLocalStreams.Clear();
-                    lock (iterationMutex)
-                    {
-                        threadLocalStreams.AddRange(streams);
-                    }
+                threadLocalStreams.Clear();
+                lock (iterationMutex) threadLocalStreams.AddRange(streams);
 
-                    foreach (var stream in threadLocalStreams)
+                foreach (var stream in threadLocalStreams)
+                {
+                    lock (stream.prepareMutex)
                     {
-                        lock (stream.prepareMutex)
+                        lock (iterationMutex)
+                            if (!streams.Contains(stream))
+                                continue;
+
+                        bool finished = false;
+
+                        int queued;
+                        AL.GetSource(stream.alSourceId, ALGetSourcei.BuffersQueued, out queued);
+                        ALHelper.CheckError("Failed to fetch queued buffers.");
+                        int processed;
+                        AL.GetSource(stream.alSourceId, ALGetSourcei.BuffersProcessed, out processed);
+                        ALHelper.CheckError("Failed to fetch processed buffers.");
+
+                        if (processed == 0 && queued == stream.BufferCount) continue;
+
+                        int[] tempBuffers;
+                        if (processed > 0)
                         {
-                            lock (iterationMutex)
+                            tempBuffers = AL.SourceUnqueueBuffers(stream.alSourceId, processed);
+                            ALHelper.CheckError("Failed to unqueue buffers.");
+                        }
+                        else
+                            tempBuffers = stream.alBufferIds.Skip(queued).ToArray();
+
+                        int bufferFilled = 0;
+                        for (int i = 0; i < tempBuffers.Length && !pendingFinish; i++)
+                        {
+                            finished |= FillBuffer(stream, tempBuffers[i]);
+                            bufferFilled++;
+
+                            if (finished)
                             {
-                                if (!streams.Contains(stream))
+                                if (stream.IsLooped)
                                 {
-                                    continue;
+                                    stream.Close();
+                                    stream.Open();
+                                }
+                                else
+                                {
+                                    pendingFinish = true;
                                 }
                             }
-
-                            bool finished = false;
-
-                            int queued;
-                            AL.GetSource(stream.alSourceId, ALGetSourcei.BuffersQueued, out queued);
-                            ALHelper.CheckError("Failed to fetch queued buffers.");
-                            int processed;
-                            AL.GetSource(stream.alSourceId, ALGetSourcei.BuffersProcessed, out processed);
-                            ALHelper.CheckError("Failed to fetch processed buffers.");
-
-                            if (processed == 0 && queued == stream.BufferCount)
-                            {
-                                continue;
-                            }
-
-                            int[] tempBuffers;
-
-                            if (processed > 0)
-                            {
-                                tempBuffers = AL.SourceUnqueueBuffers(stream.alSourceId, processed);
-                                ALHelper.CheckError("Failed to unqueue buffers.");
-                            }
-                            else
-                            {
-                                tempBuffers = stream.alBufferIds.Skip(queued).ToArray();
-                            }
-
-                            int bufferFilled = 0;
-
-                            bool has_finished = false;
-
-                            for (int i = 0; i < tempBuffers.Length && !has_finished; i++)
-                            {
-                                finished |= FillBuffer(stream, tempBuffers[i]);
-                                bufferFilled++;
-
-                                if (finished)
-                                {
-                                    if (stream.IsLooped)
-                                    {
-                                        stream.Close();
-                                        stream.Open();
-                                    }
-                                    else
-                                    {
-                                        has_finished = true;
-                                    }
-                                }
-                            }
-
-                            if (has_finished && queued == 0)
-                            {
-                                lock (iterationMutex)
-                                {
-                                    streams.Remove(stream);
-                                }
-
-                                if (stream.FinishedAction != null)
-                                {
-                                    stream.FinishedAction.Invoke();
-                                }
-                            }
-                            else if (/*!finished &&*/ bufferFilled > 0) // queue only successfully filled buffers // ARTHUR 8/8/2023: Removed finished check. When a source loops, it can populate the buffer while 'finished' is true.
-                            {
-                                AL.SourceQueueBuffers(stream.alSourceId, bufferFilled, tempBuffers);
-                                ALHelper.CheckError("Failed to queue buffers.");
-                            }
-                            else if (!stream.IsLooped)
-                                continue;
                         }
 
-                        lock (stream.stopMutex)
+                        if (pendingFinish && queued == 0)
                         {
-                            if (stream.Preparing) continue;
-
+                            pendingFinish = false;
                             lock (iterationMutex)
-                                if (!streams.Contains(stream))
-                                    continue;
+                                streams.Remove(stream);
+                            if (stream.FinishedAction != null)
+                                stream.FinishedAction.Invoke();
+                        }
+                        else if (!finished && bufferFilled > 0) // queue only successfully filled buffers
+                        {
+                            AL.SourceQueueBuffers(stream.alSourceId, bufferFilled, tempBuffers);
+                            ALHelper.CheckError("Failed to queue buffers.");
+                        }
+                        else if (!stream.IsLooped)
+                            continue;
+                    }
 
-                            var state = AL.GetSourceState(stream.alSourceId);
-                            ALHelper.CheckError("Failed to get source state.");
-                            if (state == ALSourceState.Stopped)
-                            {
-                                AL.SourcePlay(stream.alSourceId);
-                                ALHelper.CheckError("Failed to play.");
-                            }
+                    lock (stream.stopMutex)
+                    {
+                        if (stream.Preparing) continue;
+
+                        lock (iterationMutex)
+                            if (!streams.Contains(stream))
+                                continue;
+
+                        var state = AL.GetSourceState(stream.alSourceId);
+                        ALHelper.CheckError("Failed to get source state.");
+                        if (state == ALSourceState.Stopped)
+                        {
+                            AL.SourcePlay(stream.alSourceId);
+                            ALHelper.CheckError("Failed to play.");
                         }
                     }
                 }
