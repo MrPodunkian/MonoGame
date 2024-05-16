@@ -130,7 +130,18 @@ namespace Microsoft.Xna.Framework.Audio
             // Unqueue them
             if (numBuffers > 0)
             {
-                AL.SourceUnqueueBuffers(SourceId, numBuffers);
+                // ARTHUR 5/16/2024: Get unqueued buffer ids
+                var unqueued_buffers = AL.SourceUnqueueBuffers(SourceId, numBuffers);
+
+                for (int i = 0; i < unqueued_buffers.Length; i++)
+                {
+                    int size = 0;
+                    AL.GetBufferi(unqueued_buffers[i], ALGetBufferi.Size, out size);
+
+                    // 2 bytes per sample
+                    _samplesPlayed += (uint)size / (int)AudioChannels.Stereo / 2;
+                }
+
                 ALHelper.CheckError("Failed to unqueue buffers.");
                 for (int i = 0; i < numBuffers; i++)
                 {
@@ -142,6 +153,18 @@ namespace Microsoft.Xna.Framework.Audio
             // Raise the event for each removed buffer, if needed
             for (int i = 0; i < numBuffers; i++)
                 CheckBufferCount();
+        }
+
+        // ARTHUR 5/16/2024: Track samples played
+        private uint _samplesPlayed;
+
+        // ARTHUR 5/16/2024: Attempting position read.
+        public uint GetPlayedSamples()
+        {
+            int sample_position = 0;
+            AL.GetSource(SourceId, ALGetSourcei.SampleOffset, out sample_position);
+
+            return _samplesPlayed + (uint)sample_position;
         }
     }
 }
