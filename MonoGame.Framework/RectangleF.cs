@@ -106,11 +106,11 @@ namespace Microsoft.Xna.Framework
         /// <summary>
         /// The top-left coordinates of this <see cref="RectangleF"/>.
         /// </summary>
-        public Vector2 Location
+        public System.Numerics.Vector2 Location
         {
             get
             {
-                return new Vector2(this.X, this.Y);
+                return new System.Numerics.Vector2(this.X, this.Y);
             }
             set
             {
@@ -122,11 +122,11 @@ namespace Microsoft.Xna.Framework
         /// <summary>
         /// The width-height coordinates of this <see cref="RectangleF"/>.
         /// </summary>
-        public Vector2 Size
+        public System.Numerics.Vector2 Size
         {
             get
             {
-                return new Vector2(this.Width, this.Height);
+                return new System.Numerics.Vector2(this.Width, this.Height);
             }
             set
             {
@@ -136,13 +136,13 @@ namespace Microsoft.Xna.Framework
         }
 
         /// <summary>
-        /// A <see cref="Vector2"/> located in the center of this <see cref="RectangleF"/>.
+        /// A <see cref="System.Numerics.Vector2"/> located in the center of this <see cref="RectangleF"/>.
         /// </summary>
-        public Vector2 Center
+        public System.Numerics.Vector2 Center
         {
             get
             {
-                return new Vector2(this.X + (this.Width / 2), this.Y + (this.Height / 2));
+                return new System.Numerics.Vector2(this.X + (this.Width / 2), this.Y + (this.Height / 2));
             }
         }
 
@@ -189,7 +189,7 @@ namespace Microsoft.Xna.Framework
         /// </summary>
         /// <param name="location">The x and y coordinates of the top-left corner of the created <see cref="RectangleF"/>.</param>
         /// <param name="size">The width and height of the created <see cref="RectangleF"/>.</param>
-        public RectangleF(Vector2 location, Vector2 size)
+        public RectangleF(System.Numerics.Vector2 location, System.Numerics.Vector2 size)
         {
             this.X = location.X;
             this.Y = location.Y;
@@ -239,21 +239,21 @@ namespace Microsoft.Xna.Framework
         }
 
         /// <summary>
-        /// Gets whether or not the provided <see cref="Vector2"/> lies within the bounds of this <see cref="RectangleF"/>.
+        /// Gets whether or not the provided <see cref="System.Numerics.Vector2"/> lies within the bounds of this <see cref="RectangleF"/>.
         /// </summary>
         /// <param name="value">The coordinates to check for inclusion in this <see cref="RectangleF"/>.</param>
-        /// <returns><c>true</c> if the provided <see cref="Vector2"/> lies inside this <see cref="RectangleF"/>; <c>false</c> otherwise.</returns>
-        public bool Contains(Vector2 value)
+        /// <returns><c>true</c> if the provided <see cref="System.Numerics.Vector2"/> lies inside this <see cref="RectangleF"/>; <c>false</c> otherwise.</returns>
+        public bool Contains(System.Numerics.Vector2 value)
         {
             return ((((this.X <= value.X) && (value.X < (this.X + this.Width))) && (this.Y <= value.Y)) && (value.Y < (this.Y + this.Height)));
         }
 
         /// <summary>
-        /// Gets whether or not the provided <see cref="Vector2"/> lies within the bounds of this <see cref="RectangleF"/>.
+        /// Gets whether or not the provided <see cref="System.Numerics.Vector2"/> lies within the bounds of this <see cref="RectangleF"/>.
         /// </summary>
         /// <param name="value">The coordinates to check for inclusion in this <see cref="RectangleF"/>.</param>
-        /// <param name="result"><c>true</c> if the provided <see cref="Vector2"/> lies inside this <see cref="RectangleF"/>; <c>false</c> otherwise. As an output parameter.</param>
-        public void Contains(ref Vector2 value, out bool result)
+        /// <param name="result"><c>true</c> if the provided <see cref="System.Numerics.Vector2"/> lies inside this <see cref="RectangleF"/>; <c>false</c> otherwise. As an output parameter.</param>
+        public void Contains(ref System.Numerics.Vector2 value, out bool result)
         {
             result = ((((this.X <= value.X) && (value.X < (this.X + this.Width))) && (this.Y <= value.Y)) && (value.Y < (this.Y + this.Height)));
         }
@@ -405,7 +405,7 @@ namespace Microsoft.Xna.Framework
         /// Changes the <see cref="Location"/> of this <see cref="RectangleF"/>.
         /// </summary>
         /// <param name="amount">The x and y components to add to this <see cref="RectangleF"/>.</param>
-        public void Offset(Vector2 amount)
+        public void Offset(System.Numerics.Vector2 amount)
         {
             X += amount.X;
             Y += amount.Y;
