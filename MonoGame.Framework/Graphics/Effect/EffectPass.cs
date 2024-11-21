@@ -2,6 +2,10 @@ using System.Diagnostics;
 
 namespace Microsoft.Xna.Framework.Graphics
 {
+    /// <summary>
+    /// Contains the rendering state for drawing with an effect. <para/>
+    /// An effect can contain one or more passes.
+    /// </summary>
     public class EffectPass
     {
         private readonly Effect _effect;
@@ -13,8 +17,14 @@ namespace Microsoft.Xna.Framework.Graphics
         private readonly DepthStencilState _depthStencilState;
         private readonly RasterizerState _rasterizerState;
 
+        /// <summary>
+        /// Gets the name of this pass.
+        /// </summary>
 		public string Name { get; private set; }
 
+        /// <summary>
+        /// Gets the collection of <see cref="EffectAnnotation"/> objects for this <see cref="EffectPass"/>.
+        /// </summary>
         public EffectAnnotationCollection Annotations { get; private set; }
 
         internal EffectPass(    Effect effect, 
@@ -65,6 +75,9 @@ namespace Microsoft.Xna.Framework.Graphics
             _effect.OnApplyTextureDependentState(texture);
         }
 
+        /// <summary>
+        /// Begins this pass.
+        /// </summary>
         public void Apply()
         {
             // Set/get the correct shader handle/cleanups.

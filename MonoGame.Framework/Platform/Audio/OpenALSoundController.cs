@@ -110,6 +110,8 @@ namespace Microsoft.Xna.Framework.Audio
         public bool deviceChangeCancelled = false;
 #endif
 
+        public bool SupportsStereoAngles { get; private set;}
+
         /// <summary>
         /// Sets up the hardware resources used by the controller.
         /// </summary>
@@ -126,6 +128,7 @@ namespace Microsoft.Xna.Framework.Audio
             if (Alc.IsExtensionPresent(_device, "ALC_EXT_CAPTURE"))
                 Microphone.PopulateCaptureDevices();
 #if DESKTOPGL
+			// ARTHUR: Device swapping
             if (Alc.IsExtensionPresent(_device, "ALC_ENUMERATE_ALL_EXT"))
             {
                 string default_device_name = Alc.GetString(_device, 4114); // ALC_DEFAULT_ALL_DEVICES_SPECIFIER
@@ -152,6 +155,8 @@ namespace Microsoft.Xna.Framework.Audio
                 }
             }
 #endif
+            SupportsStereoAngles = AL.IsExtensionPresent ("AL_EXT_STEREO_ANGLES");
+
             // We have hardware here and it is ready
 
             allSourcesArray = new int[MAX_NUMBER_OF_SOURCES];
@@ -238,7 +243,7 @@ namespace Microsoft.Xna.Framework.Audio
                 int frequency = DEFAULT_FREQUENCY;
                 int updateSize = DEFAULT_UPDATE_SIZE;
                 int updateBuffers = DEFAULT_UPDATE_BUFFER_COUNT;
-                if (Android.OS.Build.VERSION.SdkInt >= Android.OS.BuildVersionCodes.JellyBeanMr1)
+                if (OperatingSystem.IsAndroidVersionAtLeast(17))
                 {
                     Android.Util.Log.Debug("OAL", Game.Activity.PackageManager.HasSystemFeature(PackageManager.FeatureAudioLowLatency) ? "Supports low latency audio playback." : "Does not support low latency audio playback.");
 
@@ -255,7 +260,7 @@ namespace Microsoft.Xna.Framework.Audio
 
                     // If 4.4 or higher, then we don't need to double buffer on the application side.
                     // See http://stackoverflow.com/a/15006327
-                    if (Android.OS.Build.VERSION.SdkInt >= Android.OS.BuildVersionCodes.Kitkat)
+                    if (OperatingSystem.IsAndroidVersionAtLeast (19))
                     {
                         updateBuffers = 1;
                     }

@@ -1,4 +1,4 @@
-// MonoGame - Copyright (C) The MonoGame Team
+// MonoGame - Copyright (C) MonoGame Foundation, Inc
 // This file is subject to the terms and conditions defined in
 // file 'LICENSE.txt', which is part of this source code package.
 
@@ -67,7 +67,11 @@ namespace Microsoft.Xna.Framework.Audio
             ALHelper.CheckError("Failed to get buffer channels");
             AL.GetBuffer(openALDataBuffer, ALGetBufferi.Size, out unpackedSize);
             ALHelper.CheckError("Failed to get buffer size");
-            Duration = (float)(unpackedSize / ((bits / 8) * channels)) / (float)sampleRate;
+            if (format == ALFormat.MonoMSAdpcm || format == ALFormat.StereoMSAdpcm) {
+                Duration = (float)(unpackedSize * 2) / (channels * sampleRate);;
+            } else {
+                Duration = (float)(unpackedSize * 8) / (channels * bits * sampleRate);
+            }
         }
 
 		public void Dispose()

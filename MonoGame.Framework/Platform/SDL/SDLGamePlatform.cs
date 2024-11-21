@@ -1,4 +1,4 @@
-// MonoGame - Copyright (C) The MonoGame Team
+// MonoGame - Copyright (C) MonoGame Foundation, Inc
 // This file is subject to the terms and conditions defined in
 // file 'LICENSE.txt', which is part of this source code package.
 
@@ -92,9 +92,25 @@ namespace Microsoft.Xna.Framework
                 Threading.Run();
                 GraphicsDevice.DisposeContexts();
 
-                if (_isExiting > 0)
+                if (_isExiting > 0 && ShouldExit())
+                {
                     break;
+                }
+                else
+                {
+                    _isExiting = 0;
+                }
             }
+        }
+
+        private bool ShouldExit()
+        {
+            if(_keys.Contains(Keys.F4) && (_keys.Contains(Keys.LeftAlt) || _keys.Contains(Keys.RightAlt)))
+            {
+                return Window.AllowAltF4;
+            }
+
+            return true;
         }
 
         private void SdlRunLoop()
@@ -106,7 +122,7 @@ namespace Microsoft.Xna.Framework
                 switch (ev.Type)
                 {
                     case Sdl.EventType.Quit:
-                        _isExiting++;
+                        Game.Exit();
                         break;
                     case Sdl.EventType.JoyDeviceAdded:
                         Joystick.AddDevices();
@@ -151,7 +167,7 @@ namespace Microsoft.Xna.Framework
                             int len = 0;
                             int utf8character = 0; // using an int to encode multibyte characters longer than 2 bytes
                             byte currentByte = 0;
-                            int charByteSize = 0; // UTF8 char lenght to decode
+                            int charByteSize = 0; // UTF8 char length to decode
                             int remainingShift = 0;
                             unsafe
                             {
@@ -233,7 +249,7 @@ namespace Microsoft.Xna.Framework
                                 _view.Moved();
                                 break;
                             case Sdl.Window.EventId.Close:
-                                _isExiting++;
+                                Game.Exit();
                                 break;
                         }
                         break;

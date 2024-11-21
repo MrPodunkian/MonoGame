@@ -1,4 +1,4 @@
-// MonoGame - Copyright (C) The MonoGame Team
+// MonoGame - Copyright (C) MonoGame Foundation, Inc
 // This file is subject to the terms and conditions defined in
 // file 'LICENSE.txt', which is part of this source code package.
 
@@ -109,7 +109,8 @@ namespace Microsoft.Xna.Framework
             Sdl.SetHint("SDL_JOYSTICK_ALLOW_BACKGROUND_EVENTS", "1");
 
             // when running NUnit tests entry assembly can be null
-            if (Assembly.GetEntryAssembly() != null)
+            var entryAssembly = Assembly.GetEntryAssembly();
+            if (entryAssembly != null)
             {
                 // Attempt to load the PNG icon first.
                 try
@@ -193,7 +194,7 @@ namespace Microsoft.Xna.Framework
             _height = GraphicsDeviceManager.DefaultBackBufferHeight;
 
             _handle = Sdl.Window.Create(
-                AssemblyHelper.GetDefaultWindowTitle(),
+                Title == null ? AssemblyHelper.GetDefaultWindowTitle() : Title,
                 winx, winy, _width, _height, initflags
             );
 
@@ -342,6 +343,10 @@ namespace Microsoft.Xna.Framework
                 _game.GraphicsDevice.PresentationParameters.BackBufferHeight == height) {
                 return;
             }
+
+            if (_game.GraphicsDevice.RasterizerState.ScissorTestEnable && _game.GraphicsDevice.ScissorRectangle == _game.GraphicsDevice.Viewport.Bounds)
+                _game.GraphicsDevice.ScissorRectangle = new Rectangle(0, 0, width, height);
+
             _game.GraphicsDevice.PresentationParameters.BackBufferWidth = width;
             _game.GraphicsDevice.PresentationParameters.BackBufferHeight = height;
             _game.GraphicsDevice.Viewport = new Viewport(0, 0, width, height);

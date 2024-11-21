@@ -1,4 +1,4 @@
-﻿// MonoGame - Copyright (C) The MonoGame Team
+﻿// MonoGame - Copyright (C) MonoGame Foundation, Inc
 // This file is subject to the terms and conditions defined in
 // file 'LICENSE.txt', which is part of this source code package.
 
@@ -168,6 +168,18 @@ internal static class Sdl
             return version == (Version)obj;
         }
 
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 17;
+                hash = hash * 23 + Major.GetHashCode();
+                hash = hash * 23 + Minor.GetHashCode();
+                hash = hash * 23 + Patch.GetHashCode();
+                return hash;
+            }
+        }
+
         public static bool operator !=(Version version1, Version version2)
         {
             return !(version1 == version2);
@@ -181,6 +193,11 @@ internal static class Sdl
         public static bool operator <=(Version version1, Version version2)
         {
             return version1 == version2 || version1 < version2;
+        }
+
+        public override string ToString()
+        {
+            return Major + "." + Minor + "." + Patch;
         }
 
         private static int ConcatenateVersion(Version version)
@@ -385,7 +402,6 @@ internal static class Sdl
             UiKit,
             Wayland,
             Mir,
-            WinRt,
             Android
         }
 
@@ -470,7 +486,7 @@ internal static class Sdl
 
         public static void SetTitle(IntPtr handle, string title)
         {
-            var bytes = Encoding.UTF8.GetBytes(title);
+            var bytes = Encoding.UTF8.GetBytes(title + '\0');
             SDL_SetWindowTitle(handle, ref bytes[0]);
         }
 
@@ -988,6 +1004,14 @@ internal static class Sdl
         public static d_sdl_gamecontrolleraddmappingsfromrw AddMappingFromRw = FuncLoader.LoadFunction<d_sdl_gamecontrolleraddmappingsfromrw>(NativeLibrary, "SDL_GameControllerAddMappingsFromRW");
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        public delegate bool d_sdl_gamecontrollerhasbutton(IntPtr gamecontroller, Button button);
+        public static d_sdl_gamecontrollerhasbutton HasButton = FuncLoader.LoadFunction<d_sdl_gamecontrollerhasbutton>(NativeLibrary, "SDL_GameControllerHasButton");
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        public delegate bool d_sdl_gamecontrollerhasaxis(IntPtr gamecontroller, Axis axis);
+        public static d_sdl_gamecontrollerhasaxis HasAxis = FuncLoader.LoadFunction<d_sdl_gamecontrollerhasaxis>(NativeLibrary, "SDL_GameControllerHasAxis");
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         public delegate void d_sdl_gamecontrollerclose(IntPtr gamecontroller);
         public static d_sdl_gamecontrollerclose Close = FuncLoader.LoadFunction<d_sdl_gamecontrollerclose>(NativeLibrary, "SDL_GameControllerClose");
 
@@ -1070,9 +1094,9 @@ internal static class Sdl
 
     public static class Haptic
     {
-        // For some reason, different game controllers have different maximum value supported
-        // Also, the more the value is close to their limit, the more they tend to randomly ignore it
-        // Hence, we're setting an abitrary safe value as a maximum
+        // For some reason, different game controllers support different maximum values
+        // Also, the closer a given value is to the maximum, the more likely the value will be ignored
+        // Hence, we're setting an arbitrary safe value as a maximum
         public const uint Infinity = 1000000U;
 
         public enum EffectId : ushort

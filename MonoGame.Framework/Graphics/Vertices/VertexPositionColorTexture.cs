@@ -2,19 +2,34 @@ using System.Runtime.InteropServices;
 
 namespace Microsoft.Xna.Framework.Graphics
 {
+    /// <summary>
+    /// Describes a custom vertex format structure that contains position,
+    /// color, and one set of texture coordinates.
+    /// </summary>
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
     public struct VertexPositionColorTexture : IVertexType
     {
+        /// <inheritdoc cref="VertexPosition.Position"/>
         public Vector3 Position;
+        /// <inheritdoc cref="VertexPositionColor.Color"/>
         public Color Color;
         public Color Color1; // Added second color.
-        public Vector2 TextureCoordinate;
+        /// <inheritdoc cref="VertexPositionTexture.TextureCoordinate"/>
+		public Vector2 TextureCoordinate;
         public Vector2 TextureCoordinate1; // ARTHUR 5/18/2021: Added a second texture coordinate channel for normalized coordinate. (0, 0 for upper left of quad as submitted by batcher, 1, 1 for lower right)
         public Vector2 TextureCoordinate2;
         public Vector2 TextureCoordinate3;
+        /// <inheritdoc cref="IVertexType.VertexDeclaration"/>
         public static readonly VertexDeclaration VertexDeclaration;
 
-        public VertexPositionColorTexture(Vector3 position, Color color, Color color1, Vector2 textureCoordinate, Vector2 textureCoordinate1, Vector2 textureCoordinate2, Vector2 textureCoordinate3)
+
+        /// <summary>
+        /// Creates an instance of <see cref="VertexPositionColorTexture"/>.
+        /// </summary>
+        /// <param name="position">Position of the vertex.</param>
+        /// <param name="color">Color of the vertex.</param>
+        /// <param name="textureCoordinate">Texture coordinate of the vertex.</param>
+		public VertexPositionColorTexture(Vector3 position, Color color, Color color1, Vector2 textureCoordinate, Vector2 textureCoordinate1, Vector2 textureCoordinate2, Vector2 textureCoordinate3)
         {
             Position = position;
             Color = color;
@@ -33,6 +48,7 @@ namespace Microsoft.Xna.Framework.Graphics
             }
         }
 
+        /// <inheritdoc/>
         public override int GetHashCode()
         {
             unchecked
@@ -48,21 +64,39 @@ namespace Microsoft.Xna.Framework.Graphics
             }
         }
 
+        /// <inheritdoc cref="VertexPosition.ToString()"/>
         public override string ToString()
         {
             return "{{Position:" + this.Position + " Color:" + this.Color + " Color1:" + this.Color1 + " TextureCoordinate:" + this.TextureCoordinate + " TextureCoordinate1:" + this.TextureCoordinate1 + " TextureCoordinate2:" + this.TextureCoordinate2 + " TextureCoordinate3:" + this.TextureCoordinate3 + "}}";
         }
 
+        /// <summary>
+        /// Returns a value that indicates whether two <see cref="VertexPositionColorTexture"/> are equal
+        /// </summary>
+        /// <param name="left">The object on the left of the equality operator.</param>
+        /// <param name="right">The object on the right of the equality operator.</param>
+        /// <returns>
+        /// <see langword="true"/> if the objects are the same; <see langword="false"/> otherwise.
+        /// </returns>
         public static bool operator ==(VertexPositionColorTexture left, VertexPositionColorTexture right)
         {
             return (((((((left.Position == right.Position) && (left.Color == right.Color)) && (left.Color1 == right.Color1)) && (left.TextureCoordinate == right.TextureCoordinate)) && (left.TextureCoordinate1 == right.TextureCoordinate1)) && (left.TextureCoordinate2 == right.TextureCoordinate2)) && (left.TextureCoordinate3 == right.TextureCoordinate3));
         }
 
+        /// <summary>
+        /// Returns a value that indicates whether two <see cref="VertexPositionColorTexture"/> are different
+        /// </summary>
+        /// <param name="left">The object on the left of the inequality operator.</param>
+        /// <param name="right">The object on the right of the inequality operator.</param>
+        /// <returns>
+        /// <see langword="true"/> if the objects are different; <see langword="false"/> otherwise.
+        /// </returns>
         public static bool operator !=(VertexPositionColorTexture left, VertexPositionColorTexture right)
         {
             return !(left == right);
         }
 
+        /// <inheritdoc cref="VertexPosition.Equals(object)"/>
         public override bool Equals(object obj)
         {
             if (obj == null)
