@@ -238,6 +238,7 @@ namespace Microsoft.Xna.Framework
 
         public override void StartTextInput()
         {
+            Sdl.SetHint("SDL_ENABLE_SCREEN_KEYBOARD", "0");
             Sdl.StartTextInput();
         }
 
