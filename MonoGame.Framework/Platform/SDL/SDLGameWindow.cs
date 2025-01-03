@@ -236,9 +236,17 @@ namespace Microsoft.Xna.Framework
             return 0;
         }
 
-        public override void StartTextInput()
+        public override void StartTextInput(bool suppress_osk = false)
         {
-            Sdl.SetHint("SDL_ENABLE_SCREEN_KEYBOARD", "0");
+            if (suppress_osk)
+            {
+                Sdl.SetHint("SDL_ENABLE_SCREEN_KEYBOARD", "0");
+            }
+            else
+            {
+                Sdl.SetHint("SDL_ENABLE_SCREEN_KEYBOARD", "1");
+            }
+
             Sdl.StartTextInput();
         }
 

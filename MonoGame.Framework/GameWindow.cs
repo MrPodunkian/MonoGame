@@ -288,7 +288,7 @@ namespace Microsoft.Xna.Framework
         }
 #endif
 
-        public virtual void StartTextInput()
+        public virtual void StartTextInput(bool suppress_osk = false)
         {
 
         }
