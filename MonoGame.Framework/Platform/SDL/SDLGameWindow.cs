@@ -95,6 +95,16 @@ namespace Microsoft.Xna.Framework
         private int _width, _height;
         private bool _wasMoved, _supressMoved;
 
+        // ARTHUR: 1/16/2025: Added DPI for interim support for default scaling window size by "display scale" value.
+        public override float DPI
+        {
+            get {
+                var displayIndex = Sdl.Window.GetDisplayIndex(Handle);
+                Sdl.Display.GetDisplayDPI(displayIndex, out _, out var dpi, out _);
+                return dpi;
+            }
+        }
+
         public SdlGameWindow(Game game)
         {
             _game = game;

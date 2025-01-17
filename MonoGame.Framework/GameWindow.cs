@@ -260,6 +260,15 @@ namespace Microsoft.Xna.Framework
             EventHelpers.Raise(this, FileDrop, e);
         }
 
+        // ARTHUR: 1/16/2025: Added DPI for interim support for default scaling window size by "display scale" value.
+        public virtual float DPI
+        {
+            get
+            {
+                return 96;
+            }
+        }
+
         /// <summary>
         /// Sets the supported display orientations.
         /// </summary>

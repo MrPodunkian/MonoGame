@@ -523,6 +523,16 @@ internal static class Sdl
             GetError(SDL_GetDisplayBounds(displayIndex, out rect));
         }
 
+        // ARTHUR: 1/16/2025: Added DPI for interim support for default scaling window size by "display scale" value.
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate int d_sdl_getdisplaydpi(int displayIndex, out float ddpi, out float hdpi, out float vdpi);
+        private static d_sdl_getdisplaydpi SDL_GetDisplayDPI = FuncLoader.LoadFunction<d_sdl_getdisplaydpi>(NativeLibrary, "SDL_GetDisplayDPI");
+
+        public static void GetDisplayDPI(int displayIndex, out float ddpi, out float hdpi, out float vdpi )
+        {
+            GetError(SDL_GetDisplayDPI(displayIndex, out ddpi, out hdpi, out vdpi));
+        }
+
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         private delegate int d_sdl_getcurrentdisplaymode(int displayIndex, out Mode mode);
         private static d_sdl_getcurrentdisplaymode SDL_GetCurrentDisplayMode = FuncLoader.LoadFunction<d_sdl_getcurrentdisplaymode>(NativeLibrary, "SDL_GetCurrentDisplayMode");
