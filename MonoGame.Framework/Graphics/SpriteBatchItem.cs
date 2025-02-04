@@ -23,7 +23,7 @@ namespace Microsoft.Xna.Framework.Graphics
             vertexBR = new VertexPositionColorTexture();            
 		}
 		
-		public void Set ( float x, float y, float dx, float dy, float w, float h, float sin, float cos, Color color, Color color1, Vector2 texCoordTL, Vector2 texCoordBR, float depth, Matrix? transformMatrix)
+		public void Set ( float x, float y, float dx, float dy, float w, float h, float sin, float cos, Color color, Color color1, Color color2, Vector2 texCoordTL, Vector2 texCoordBR, float depth, Matrix? transformMatrix)
 		{
             // TODO, Should we be just assigning the Depth Value to Z?
             // According to http://blogs.msdn.com/b/shawnhar/archive/2011/01/12/spritebatch-billboards-in-a-3d-world.aspx
@@ -57,15 +57,22 @@ namespace Microsoft.Xna.Framework.Graphics
             vertexBR.TextureCoordinate.X = texCoordBR.X;
             vertexBR.TextureCoordinate.Y = texCoordBR.Y;
 
-            if (color1.R > 0)
-            {
-
-            }
-
             vertexTL.Color1 = color1;
             vertexTR.Color1 = color1;
             vertexBL.Color1 = color1;
             vertexBR.Color1 = color1;
+
+            vertexTL.Color2RG = new Vector2(color2.R / 255.0F, color2.G / 255.0F);
+            vertexTL.Color2BA = new Vector2(color2.B / 255.0F, color2.A / 255.0F);
+
+            vertexTR.Color2RG = vertexTL.Color2RG;
+            vertexTR.Color2BA = vertexTL.Color2BA;
+
+            vertexBL.Color2RG = vertexTL.Color2RG;
+            vertexBL.Color2BA = vertexTL.Color2BA;
+
+            vertexBR.Color2RG = vertexTL.Color2RG;
+            vertexBR.Color2BA = vertexTL.Color2BA;
 
             // ARTHUR 5/18/2021: Added normalized quad coordinates.
             vertexTL.TextureCoordinate1.X = 0;
@@ -89,7 +96,7 @@ namespace Microsoft.Xna.Framework.Graphics
             }
 		}
 
-        public void Set(float x, float y, float w, float h, Color color, Color color1, Vector2 texCoordTL, Vector2 texCoordBR, float depth, Matrix? transformMatrix)
+        public void Set(float x, float y, float w, float h, Color color, Color color1, Color color2, Vector2 texCoordTL, Vector2 texCoordBR, float depth, Matrix? transformMatrix)
         {
             vertexTL.Position.X = x;
             vertexTL.Position.Y = y;
@@ -123,6 +130,18 @@ namespace Microsoft.Xna.Framework.Graphics
             vertexTR.Color1 = color1;
             vertexBL.Color1 = color1;
             vertexBR.Color1 = color1;
+
+            vertexTL.Color2RG = new Vector2(color2.R / 255.0F, color2.G / 255.0F);
+            vertexTL.Color2BA = new Vector2(color2.B / 255.0F, color2.A / 255.0F);
+
+            vertexTR.Color2RG = vertexTL.Color2RG;
+            vertexTR.Color2BA = vertexTL.Color2BA;
+
+            vertexBL.Color2RG = vertexTL.Color2RG;
+            vertexBL.Color2BA = vertexTL.Color2BA;
+
+            vertexBR.Color2RG = vertexTL.Color2RG;
+            vertexBR.Color2BA = vertexTL.Color2BA;
 
             // ARTHUR 5/18/2021: Added normalized quad coordinates.
             vertexTL.TextureCoordinate1.X = 0;

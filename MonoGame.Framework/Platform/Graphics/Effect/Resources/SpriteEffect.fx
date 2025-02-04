@@ -28,6 +28,8 @@ struct VSOutput
 	float2 texCoord1		: TEXCOORD1;
 	float2 texCoord2		: TEXCOORD2;
 	float2 texCoord3		: TEXCOORD3;
+	float2 texCoord4		: TEXCOORD4;
+	float2 texCoord5		: TEXCOORD5;
 };
 
 VSOutput SpriteVertexShader(	float4 position	: POSITION0,
@@ -36,7 +38,9 @@ VSOutput SpriteVertexShader(	float4 position	: POSITION0,
 								float2 texCoord	: TEXCOORD0,
 								float2 texCoord1	: TEXCOORD1,
 								float2 texCoord2	: TEXCOORD2,
-								float2 texCoord3	: TEXCOORD3)
+								float2 texCoord3	: TEXCOORD3,
+								float2 texCoord4	: TEXCOORD4,
+								float2 texCoord5	: TEXCOORD5)
 {
 	VSOutput output;
     output.position = mul(position, MatrixTransform);
@@ -46,6 +50,8 @@ VSOutput SpriteVertexShader(	float4 position	: POSITION0,
 	output.texCoord1 = texCoord1;
 	output.texCoord2 = texCoord2;
 	output.texCoord3 = texCoord3;
+	output.texCoord4 = texCoord4;
+	output.texCoord5 = texCoord5;
 	return output;
 }
 
