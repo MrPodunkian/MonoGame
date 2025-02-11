@@ -186,7 +186,7 @@ namespace Microsoft.Xna.Framework.Graphics
         public static ModifyCharPosition LegacyModifyChar;
         public static int LegacyCharIndex;
 
-        // For compatibility with FontStash
+        [Obsolete]
         public void Draw(Texture2D texture,
                 Vector2 position,
                 Rectangle? sourceRectangle,
@@ -290,7 +290,7 @@ namespace Microsoft.Xna.Framework.Graphics
 				_texCoordBR.X = _texCoordTL.X;
 				_texCoordTL.X = temp;
             }
-            
+
             if (rotation == 0f)
             {
                 item.Set(position.X - origin.X,
