@@ -183,12 +183,15 @@ namespace Microsoft.Xna.Framework.Audio
             if (!OpenALSoundController.Efx.IsInitialized)
                 return;
 
-            if (ReverbEffect != 0)
-                return;
-            
             var efx = OpenALSoundController.Efx;
-            efx.GenAuxiliaryEffectSlots (1, out ReverbSlot);
-            efx.GenEffect (out ReverbEffect);
+
+            // ARTHUR 2/14/2025: Allowed modification of reverb.
+            if (ReverbEffect == 0)
+            {
+                efx.GenAuxiliaryEffectSlots(1, out ReverbSlot);
+                efx.GenEffect(out ReverbEffect);
+            }
+            
             efx.Effect (ReverbEffect, EfxEffecti.EffectType, (int)EfxEffectType.Reverb);
             efx.Effect (ReverbEffect, EfxEffectf.EaxReverbReflectionsDelay, reverbSettings.ReflectionsDelayMs / 1000.0f);
             efx.Effect (ReverbEffect, EfxEffectf.LateReverbDelay, reverbSettings.ReverbDelayMs / 1000.0f);

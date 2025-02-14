@@ -9,7 +9,8 @@ namespace Microsoft.Xna.Framework.Audio
 {
     public class ReverbSettings
     {
-        private readonly DspParameter[] _parameters = new DspParameter[22];
+        // ARTHUR 2/14/2025 Made DspParameter public.
+        public readonly DspParameter[] _parameters = new DspParameter[22];
 
         // ARTHUR 6/11/2021: Made ReverbSettings public and added default constructor based on values from FarmerSounds.xap
         public ReverbSettings()
@@ -26,7 +27,7 @@ namespace Microsoft.Xna.Framework.Audio
             _parameters[9] = new DspParameter(4, 0, 9); // LowEqCutoff
             _parameters[10] = new DspParameter(8, 0, 8); // HighEqGain
             _parameters[11] = new DspParameter(6, 0, 14); // HighEqCutoff
-            _parameters[12] = new DspParameter(0, 5, 5); // RearDelayMs
+            _parameters[12] = new DspParameter(5, 0, 5); // RearDelayMs
             _parameters[13] = new DspParameter(6198.798828F, 20, 20000); // RoomFilterFrequencyHz
             _parameters[14] = new DspParameter(-10, -100, 0); // RoomFilterMainDb
             _parameters[15] = new DspParameter(0, -100, 0); // RoomFilterHighFrequencyDb
@@ -70,27 +71,28 @@ namespace Microsoft.Xna.Framework.Audio
             set { _parameters[index].SetValue(value); }
         }
 
-        public float ReflectionsDelayMs { get { return _parameters[0].Value; } }
-        public float ReverbDelayMs { get { return _parameters[1].Value; } }
-        public float PositionLeft { get { return _parameters[2].Value; } }
-        public float PositionRight { get { return _parameters[3].Value; } }
-        public float PositionLeftMatrix { get { return _parameters[4].Value; } }
-        public float PositionRightMatrix { get { return _parameters[5].Value; } }
-        public float EarlyDiffusion { get { return _parameters[6].Value; } }
-        public float LateDiffusion { get { return _parameters[7].Value; } }
-        public float LowEqGain { get { return _parameters[8].Value; } }
-        public float LowEqCutoff { get { return _parameters[9].Value; } }
-        public float HighEqGain { get { return _parameters[10].Value; } }
-        public float HighEqCutoff { get { return _parameters[11].Value; } }
-        public float RearDelayMs { get { return _parameters[12].Value; } }
-        public float RoomFilterFrequencyHz { get { return _parameters[13].Value; } }
-        public float RoomFilterMainDb { get { return _parameters[14].Value; } }
-        public float RoomFilterHighFrequencyDb { get { return _parameters[15].Value; } }
-        public float ReflectionsGainDb { get { return _parameters[16].Value; } }
-        public float ReverbGainDb { get { return _parameters[17].Value; } }
-        public float DecayTimeSec { get { return _parameters[18].Value; } }
-        public float DensityPct { get { return _parameters[19].Value; } }
-        public float RoomSizeFeet { get { return _parameters[20].Value; } }
-        public float WetDryMixPct { get { return _parameters[21].Value; } }
+        // ARTHUR 2/14/2025: Added setters.
+        public float ReflectionsDelayMs { get { return _parameters[0].Value; } set { _parameters[0].SetValue(value); } }
+        public float ReverbDelayMs { get { return _parameters[1].Value; } set { _parameters[1].SetValue(value); } }
+        public float PositionLeft { get { return _parameters[2].Value; } set { _parameters[2].SetValue(value); } }
+        public float PositionRight { get { return _parameters[3].Value; } set { _parameters[3].SetValue(value); } }
+        public float PositionLeftMatrix { get { return _parameters[4].Value; } set { _parameters[4].SetValue(value); } }
+        public float PositionRightMatrix { get { return _parameters[5].Value; } set { _parameters[5].SetValue(value); } }
+        public float EarlyDiffusion { get { return _parameters[6].Value; } set { _parameters[6].SetValue(value); } }
+        public float LateDiffusion { get { return _parameters[7].Value; } set { _parameters[7].SetValue(value); } }
+        public float LowEqGain { get { return _parameters[8].Value; } set { _parameters[8].SetValue(value); } }
+        public float LowEqCutoff { get { return _parameters[9].Value; } set { _parameters[9].SetValue(value); } }
+        public float HighEqGain { get { return _parameters[10].Value; } set { _parameters[10].SetValue(value); } }
+        public float HighEqCutoff { get { return _parameters[11].Value; } set { _parameters[11].SetValue(value); } }
+        public float RearDelayMs { get { return _parameters[12].Value; } set { _parameters[12].SetValue(value); } }
+        public float RoomFilterFrequencyHz { get { return _parameters[13].Value; } set { _parameters[13].SetValue(value); } }
+        public float RoomFilterMainDb { get { return _parameters[14].Value; } set { _parameters[14].SetValue(value); } }
+        public float RoomFilterHighFrequencyDb { get { return _parameters[15].Value; } set { _parameters[15].SetValue(value); } }
+        public float ReflectionsGainDb { get { return _parameters[16].Value; } set { _parameters[16].SetValue(value); } }
+        public float ReverbGainDb { get { return _parameters[17].Value; } set { _parameters[17].SetValue(value); } }
+        public float DecayTimeSec { get { return _parameters[18].Value; } set { _parameters[18].SetValue(value); } }
+        public float DensityPct { get { return _parameters[19].Value; } set { _parameters[19].SetValue(value); } }
+        public float RoomSizeFeet { get { return _parameters[20].Value; } set { _parameters[20].SetValue(value); } }
+        public float WetDryMixPct { get { return _parameters[21].Value; } set { _parameters[21].SetValue(value); } }
     }
 }

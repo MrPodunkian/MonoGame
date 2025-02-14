@@ -6,7 +6,8 @@ using System.IO;
 
 namespace Microsoft.Xna.Framework.Audio
 {
-    struct DspParameter
+    // ARTHUR 2/14/2025: Struct to class
+    public class DspParameter
     {
         public float Value;
         public readonly float MinValue;
