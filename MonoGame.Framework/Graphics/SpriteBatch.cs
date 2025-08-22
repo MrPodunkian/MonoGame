@@ -750,7 +750,7 @@ namespace Microsoft.Xna.Framework.Graphics
         /// <param name="layerDepth">A depth of the layer of this string.</param>
 		public unsafe void DrawString (
 			SpriteFont spriteFont, string text, Vector2 position, Color color, Color color1, Color color2,
-            float rotation, Vector2 origin, Vector2 scale, SpriteEffects effects, float layerDepth, Matrix? transformMatrix = null, ModifyCharPosition modify_char = null)
+            float rotation, Vector2 origin, Vector2 scale, SpriteEffects effects, float layerDepth, Matrix? transformMatrix = null, ModifyCharPosition modify_char = null, bool italicize = false)
 		{
             CheckValid(spriteFont, text);
             
@@ -926,6 +926,12 @@ namespace Microsoft.Xna.Framework.Graphics
                             _texCoordBR,
                             layerDepth,
                             transformMatrix);
+                }
+
+                if (italicize)
+                {
+                    item.vertexTL.Position.X += 2;
+                    item.vertexTR.Position.X += 2;
                 }
                 
                 offset.X += pCurrentGlyph->Width + pCurrentGlyph->RightSideBearing;
