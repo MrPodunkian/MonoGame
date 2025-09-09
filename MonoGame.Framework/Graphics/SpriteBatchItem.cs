@@ -23,7 +23,7 @@ namespace Microsoft.Xna.Framework.Graphics
             vertexBR = new VertexPositionColorTexture();            
 		}
 		
-		public void Set ( float x, float y, float dx, float dy, float w, float h, float sin, float cos, Color color, Color color1, Color color2, Vector2 texCoordTL, Vector2 texCoordBR, float depth, Matrix? transformMatrix)
+		public void Set ( float x, float y, float dx, float dy, float w, float h, float sin, float cos, Color color, Color color1, Color color2, Vector2 texCoordTL, Vector2 texCoordBR, float depth, Matrix? transformMatrix, Vector2 user_data = default(Vector2))
 		{
             // TODO, Should we be just assigning the Depth Value to Z?
             // According to http://blogs.msdn.com/b/shawnhar/archive/2011/01/12/spritebatch-billboards-in-a-3d-world.aspx
@@ -74,15 +74,15 @@ namespace Microsoft.Xna.Framework.Graphics
             vertexBR.Color2RG = vertexTL.Color2RG;
             vertexBR.Color2BA = vertexTL.Color2BA;
 
-            // ARTHUR 5/18/2021: Added normalized quad coordinates.
-            vertexTL.TextureCoordinate1.X = 0;
-            vertexTL.TextureCoordinate1.Y = 0;
-            vertexTR.TextureCoordinate1.X = 1;
-            vertexTR.TextureCoordinate1.Y = 0;
-            vertexBL.TextureCoordinate1.X = 0;
-            vertexBL.TextureCoordinate1.Y = 1;
-            vertexBR.TextureCoordinate1.X = 1;
-            vertexBR.TextureCoordinate1.Y = 1;
+            // ARTHUR 9/9/2025: Quadpos to userdata.
+            vertexTL.TextureCoordinate1.X = user_data.X;
+            vertexTL.TextureCoordinate1.Y = user_data.Y;
+            vertexTR.TextureCoordinate1.X = user_data.X;
+            vertexTR.TextureCoordinate1.Y = user_data.Y;
+            vertexBL.TextureCoordinate1.X = user_data.X;
+            vertexBL.TextureCoordinate1.Y = user_data.Y;
+            vertexBR.TextureCoordinate1.X = user_data.X;
+            vertexBR.TextureCoordinate1.Y = user_data.Y;
 
             SetSourceRectCoordinates();
 
@@ -96,7 +96,7 @@ namespace Microsoft.Xna.Framework.Graphics
             }
 		}
 
-        public void Set(float x, float y, float w, float h, Color color, Color color1, Color color2, Vector2 texCoordTL, Vector2 texCoordBR, float depth, Matrix? transformMatrix)
+        public void Set(float x, float y, float w, float h, Color color, Color color1, Color color2, Vector2 texCoordTL, Vector2 texCoordBR, float depth, Matrix? transformMatrix, Vector2 user_data = default(Vector2))
         {
             vertexTL.Position.X = x;
             vertexTL.Position.Y = y;
@@ -143,15 +143,15 @@ namespace Microsoft.Xna.Framework.Graphics
             vertexBR.Color2RG = vertexTL.Color2RG;
             vertexBR.Color2BA = vertexTL.Color2BA;
 
-            // ARTHUR 5/18/2021: Added normalized quad coordinates.
-            vertexTL.TextureCoordinate1.X = 0;
-            vertexTL.TextureCoordinate1.Y = 0;
-            vertexTR.TextureCoordinate1.X = 1;
-            vertexTR.TextureCoordinate1.Y = 0;
-            vertexBL.TextureCoordinate1.X = 0;
-            vertexBL.TextureCoordinate1.Y = 1;
-            vertexBR.TextureCoordinate1.X = 1;
-            vertexBR.TextureCoordinate1.Y = 1;
+            // ARTHUR 9/9/2025: Quadpos to userdata.
+            vertexTL.TextureCoordinate1.X = user_data.X;
+            vertexTL.TextureCoordinate1.Y = user_data.Y;
+            vertexTR.TextureCoordinate1.X = user_data.X;
+            vertexTR.TextureCoordinate1.Y = user_data.Y;
+            vertexBL.TextureCoordinate1.X = user_data.X;
+            vertexBL.TextureCoordinate1.Y = user_data.Y;
+            vertexBR.TextureCoordinate1.X = user_data.X;
+            vertexBR.TextureCoordinate1.Y = user_data.Y;
 
             SetSourceRectCoordinates();
 

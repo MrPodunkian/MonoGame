@@ -203,7 +203,8 @@ namespace Microsoft.Xna.Framework.Graphics
 				Vector2 scale,
 				SpriteEffects effects,
                 float layerDepth,
-                Matrix? transformMatrix = null)
+                Matrix? transformMatrix = null,
+                Vector2 userData = default(Vector2))
 		{
             CheckValid(texture);
 
@@ -276,7 +277,7 @@ namespace Microsoft.Xna.Framework.Graphics
                         _texCoordTL,
                         _texCoordBR,
                         layerDepth,
-                        transformMatrix);
+                        transformMatrix, userData);
             }
             else
             {
@@ -294,7 +295,7 @@ namespace Microsoft.Xna.Framework.Graphics
                         _texCoordTL,
                         _texCoordBR,
                         layerDepth,
-                        transformMatrix);
+                        transformMatrix, userData);
             }
             
             FlushIfNeeded();
@@ -350,7 +351,8 @@ namespace Microsoft.Xna.Framework.Graphics
 			Vector2 origin,
 			SpriteEffects effects,
             float layerDepth,
-            Matrix? transformMatrix = null)
+            Matrix? transformMatrix = null,
+            Vector2 userData = default(Vector2))
 		{
             CheckValid(texture);
             
@@ -428,7 +430,7 @@ namespace Microsoft.Xna.Framework.Graphics
                         _texCoordTL,
                         _texCoordBR,
                         layerDepth,
-                        transformMatrix);
+                        transformMatrix, userData);
             }
             else
 		    {
@@ -446,7 +448,7 @@ namespace Microsoft.Xna.Framework.Graphics
                         _texCoordTL,
                         _texCoordBR,
                         layerDepth,
-                        transformMatrix);
+                        transformMatrix, userData);
             }
 
 			FlushIfNeeded();
