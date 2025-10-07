@@ -110,7 +110,7 @@ namespace Microsoft.Xna.Framework.Graphics
                 Sdl.Display.Mode mode;
                 Sdl.Display.GetCurrentDisplayMode(displayIndex, out mode);
 
-                return new DisplayMode(mode.Width, mode.Height, SurfaceFormat.Color);
+                return new DisplayMode(mode.Width, mode.Height, mode.RefreshRate, SurfaceFormat.Color);
 #elif WINDOWS
                 using (var graphics = System.Drawing.Graphics.FromHwnd(IntPtr.Zero))
                 {
@@ -348,7 +348,7 @@ namespace Microsoft.Xna.Framework.Graphics
 
                         // We are only using one format, Color
                         // mode.Format gets the Color format from SDL
-                        var displayMode = new DisplayMode(mode.Width, mode.Height, SurfaceFormat.Color);
+                        var displayMode = new DisplayMode(mode.Width, mode.Height, mode.RefreshRate, SurfaceFormat.Color);
                         if (!modes.Contains(displayMode))
                             modes.Add(displayMode);
                     }
