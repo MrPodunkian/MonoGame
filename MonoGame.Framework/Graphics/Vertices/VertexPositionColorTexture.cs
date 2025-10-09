@@ -36,6 +36,7 @@ namespace Microsoft.Xna.Framework.Graphics
         {
             Position = position;
             Color = color;
+            Color1 = color1;
             Color2RG = new Vector2(color2.R / 255.0F, color2.G / 255.0F);
             Color2BA = new Vector2(color2.B / 255.0F, color2.A / 255.0F);
             TextureCoordinate = textureCoordinate;
