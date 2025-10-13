@@ -6,7 +6,7 @@ using System;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-
+using MonoGame.Tool;
 
 namespace Microsoft.Xna.Framework.Content.Pipeline.Audio
 {
@@ -16,6 +16,7 @@ namespace Microsoft.Xna.Framework.Content.Pipeline.Audio
         {
             return  platform == TargetPlatform.Android ||
                     platform == TargetPlatform.DesktopGL ||
+                    platform == TargetPlatform.DesktopVK ||
                     platform == TargetPlatform.MacOSX ||
                     platform == TargetPlatform.NativeClient ||
                     platform == TargetPlatform.RaspberryPi ||
@@ -47,7 +48,7 @@ namespace Microsoft.Xna.Framework.Content.Pipeline.Audio
             if ( platform == TargetPlatform.Windows )
                 targetFormat = ConversionFormat.WindowsMedia;
 
-            else if (platform == TargetPlatform.DesktopGL)
+            else if (platform == TargetPlatform.DesktopGL || platform == TargetPlatform.DesktopVK)
                 targetFormat = ConversionFormat.Vorbis;
             else if (platform == TargetPlatform.Web)
                 targetFormat = ConversionFormat.Mp3;
@@ -64,8 +65,7 @@ namespace Microsoft.Xna.Framework.Content.Pipeline.Audio
         public static void ProbeFormat(string sourceFile, out AudioFileType audioFileType, out AudioFormat audioFormat, out TimeSpan duration, out int loopStart, out int loopLength)
         {
             string ffprobeStdout, ffprobeStderr;
-            var ffprobeExitCode = ExternalTool.RunDotnetTool(
-                ExternalTool.FFprobe,
+            var ffprobeExitCode = FFprobe.Run(
                 string.Format("-i \"{0}\" -show_format -show_entries streams -v quiet -of flat", sourceFile),
                 out ffprobeStdout,
                 out ffprobeStderr);
@@ -115,7 +115,7 @@ namespace Microsoft.Xna.Framework.Content.Pipeline.Audio
                             sampleFormat = kv[1].Trim('"').ToLowerInvariant();
                             break;
                         case "streams.stream.0.bit_rate":
-                            averageBytesPerSecond = (int.Parse(kv[1].Trim('"'), numberFormat)/8);
+                            averageBytesPerSecond = (int)long.Parse(kv[1].Trim('"'), numberFormat)/8;
                             break;
                         case "format.format_name":
                             formatName = kv[1].Trim('"').ToLowerInvariant();
@@ -277,8 +277,7 @@ namespace Microsoft.Xna.Framework.Content.Pipeline.Audio
         public static void WritePcmFile(AudioContent content, string saveToFile, int bitRate = 192000, int? sampeRate = null)
         {
             string ffmpegStdout, ffmpegStderr;
-            var ffmpegExitCode = ExternalTool.RunDotnetTool(
-                ExternalTool.FFmpeg,
+            var ffmpegExitCode = FFmpeg.Run(
                 string.Format(
                     "-y -i \"{0}\" -vn -c:a pcm_s16le -b:a {2} {3} -f:a wav -strict experimental \"{1}\"",
                     content.FileName,
@@ -362,8 +361,7 @@ namespace Microsoft.Xna.Framework.Content.Pipeline.Audio
                 int ffmpegExitCode;
                 do
                 {
-                    ffmpegExitCode = ExternalTool.RunDotnetTool(
-                        ExternalTool.FFmpeg,
+                    ffmpegExitCode = FFmpeg.Run(
                         string.Format(
                             "-y -i \"{0}\" -vn -c:a {1} -b:a {2} -ar {3} -f:a {4} -strict experimental \"{5}\"",
                             content.FileName,
