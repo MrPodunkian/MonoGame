@@ -45,7 +45,6 @@ namespace Microsoft.Xna.Framework.Graphics
         private SurfaceFormat format;
         private int height;
         private int width;
-        private int refreshRate;
 
         #endregion Fields
 
@@ -86,21 +85,15 @@ namespace Microsoft.Xna.Framework.Graphics
             get { return GraphicsDevice.GetTitleSafeArea(0, 0, width, height); }
         }
 
-        public int RefreshRate
-        {
-            get { return this.refreshRate; }
-        }
-
         #endregion Properties
 
         #region Constructors
-
-        internal DisplayMode(int width, int height, int refresh_rate, SurfaceFormat format)
+        
+        internal DisplayMode(int width, int height, SurfaceFormat format)
         {
             this.width = width;
             this.height = height;
             this.format = format;
-            this.refreshRate = refresh_rate;
         }
 
         #endregion Constructors

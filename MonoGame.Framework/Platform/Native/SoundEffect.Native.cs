@@ -132,7 +132,7 @@ public sealed partial class SoundEffect
         }
     }
 
-    internal unsafe static void PlatformSetReverbSettings(ReverbSettings reverbSettings)
+    public unsafe static void PlatformSetReverbSettings(ReverbSettings reverbSettings)
     {
         var settings = new MonoGame.Interop.ReverbSettings
         {
