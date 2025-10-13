@@ -55,7 +55,24 @@ namespace Microsoft.Xna.Framework.Audio
             get { return _pitch; }
             set
             {
-                // ARTHUR 10/13/2025: Ignore pitch limitation.
+                // XAct sounds effects don't have pitch limits
+                if (!_isXAct)
+                {
+                    var validPitchRange = 10;
+#if IOS || ANDROID
+                    validPitchRange = 1;
+#endif
+
+                    if (value < -validPitchRange)
+                    {
+                        value = -validPitchRange;
+                    }
+
+                    if (value > validPitchRange)
+                    {
+                        value = validPitchRange;
+                    }
+                }
                 _pitch = value;
                 PlatformSetPitch(value);
             }
