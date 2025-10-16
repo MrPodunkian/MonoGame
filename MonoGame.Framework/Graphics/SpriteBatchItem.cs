@@ -23,7 +23,7 @@ namespace Microsoft.Xna.Framework.Graphics
             vertexBR = new VertexPositionColorTexture();            
 		}
 		
-		public void Set ( float x, float y, float dx, float dy, float w, float h, float sin, float cos, Color color, Color color1, Color color2, Vector2 texCoordTL, Vector2 texCoordBR, float depth, Matrix? transformMatrix, Vector2 user_data = default(Vector2))
+		public void Set ( float x, float y, float dx, float dy, float w, float h, float sin, float cos, Color color, Vector2 texCoordTL, Vector2 texCoordBR, float depth )
 		{
             // TODO, Should we be just assigning the Depth Value to Z?
             // According to http://blogs.msdn.com/b/shawnhar/archive/2011/01/12/spritebatch-billboards-in-a-3d-world.aspx
@@ -39,14 +39,13 @@ namespace Microsoft.Xna.Framework.Graphics
             vertexTR.Position.Y = y+(dx+w)*sin+dy*cos;
             vertexTR.Position.Z = depth;
             vertexTR.Color = color;
-            
             vertexTR.TextureCoordinate.X = texCoordBR.X;
             vertexTR.TextureCoordinate.Y = texCoordTL.Y;
 
 			vertexBL.Position.X = x+dx*cos-(dy+h)*sin;
             vertexBL.Position.Y = y+dx*sin+(dy+h)*cos;
             vertexBL.Position.Z = depth;
-            vertexBL.Color = color;            
+            vertexBL.Color = color;
             vertexBL.TextureCoordinate.X = texCoordTL.X;
             vertexBL.TextureCoordinate.Y = texCoordBR.Y;
 
@@ -56,47 +55,9 @@ namespace Microsoft.Xna.Framework.Graphics
             vertexBR.Color = color;
             vertexBR.TextureCoordinate.X = texCoordBR.X;
             vertexBR.TextureCoordinate.Y = texCoordBR.Y;
-
-            vertexTL.Color1 = color1;
-            vertexTR.Color1 = color1;
-            vertexBL.Color1 = color1;
-            vertexBR.Color1 = color1;
-
-            vertexTL.Color2RG = new Vector2(color2.R / 255.0F, color2.G / 255.0F);
-            vertexTL.Color2BA = new Vector2(color2.B / 255.0F, color2.A / 255.0F);
-
-            vertexTR.Color2RG = vertexTL.Color2RG;
-            vertexTR.Color2BA = vertexTL.Color2BA;
-
-            vertexBL.Color2RG = vertexTL.Color2RG;
-            vertexBL.Color2BA = vertexTL.Color2BA;
-
-            vertexBR.Color2RG = vertexTL.Color2RG;
-            vertexBR.Color2BA = vertexTL.Color2BA;
-
-            // ARTHUR 9/9/2025: Quadpos to userdata.
-            vertexTL.TextureCoordinate1.X = user_data.X;
-            vertexTL.TextureCoordinate1.Y = user_data.Y;
-            vertexTR.TextureCoordinate1.X = user_data.X;
-            vertexTR.TextureCoordinate1.Y = user_data.Y;
-            vertexBL.TextureCoordinate1.X = user_data.X;
-            vertexBL.TextureCoordinate1.Y = user_data.Y;
-            vertexBR.TextureCoordinate1.X = user_data.X;
-            vertexBR.TextureCoordinate1.Y = user_data.Y;
-
-            SetSourceRectCoordinates();
-
-            // HACK: Allow passing in a transform matrix.
-            if (transformMatrix != null)
-            {
-                vertexTL.Position = Vector3.Transform(vertexTL.Position, transformMatrix.Value);
-                vertexTR.Position = Vector3.Transform(vertexTR.Position, transformMatrix.Value);
-                vertexBL.Position = Vector3.Transform(vertexBL.Position, transformMatrix.Value);
-                vertexBR.Position = Vector3.Transform(vertexBR.Position, transformMatrix.Value);
-            }
 		}
 
-        public void Set(float x, float y, float w, float h, Color color, Color color1, Color color2, Vector2 texCoordTL, Vector2 texCoordBR, float depth, Matrix? transformMatrix, Vector2 user_data = default(Vector2))
+        public void Set(float x, float y, float w, float h, Color color, Vector2 texCoordTL, Vector2 texCoordBR, float depth)
         {
             vertexTL.Position.X = x;
             vertexTL.Position.Y = y;
@@ -125,61 +86,6 @@ namespace Microsoft.Xna.Framework.Graphics
             vertexBR.Color = color;
             vertexBR.TextureCoordinate.X = texCoordBR.X;
             vertexBR.TextureCoordinate.Y = texCoordBR.Y;
-
-            vertexTL.Color1 = color1;
-            vertexTR.Color1 = color1;
-            vertexBL.Color1 = color1;
-            vertexBR.Color1 = color1;
-
-            vertexTL.Color2RG = new Vector2(color2.R / 255.0F, color2.G / 255.0F);
-            vertexTL.Color2BA = new Vector2(color2.B / 255.0F, color2.A / 255.0F);
-
-            vertexTR.Color2RG = vertexTL.Color2RG;
-            vertexTR.Color2BA = vertexTL.Color2BA;
-
-            vertexBL.Color2RG = vertexTL.Color2RG;
-            vertexBL.Color2BA = vertexTL.Color2BA;
-
-            vertexBR.Color2RG = vertexTL.Color2RG;
-            vertexBR.Color2BA = vertexTL.Color2BA;
-
-            // ARTHUR 9/9/2025: Quadpos to userdata.
-            vertexTL.TextureCoordinate1.X = user_data.X;
-            vertexTL.TextureCoordinate1.Y = user_data.Y;
-            vertexTR.TextureCoordinate1.X = user_data.X;
-            vertexTR.TextureCoordinate1.Y = user_data.Y;
-            vertexBL.TextureCoordinate1.X = user_data.X;
-            vertexBL.TextureCoordinate1.Y = user_data.Y;
-            vertexBR.TextureCoordinate1.X = user_data.X;
-            vertexBR.TextureCoordinate1.Y = user_data.Y;
-
-            SetSourceRectCoordinates();
-
-            // HACK: Allow passing in a transform matrix.
-            if (transformMatrix != null)
-            {
-                vertexTL.Position = Vector3.Transform(vertexTL.Position, transformMatrix.Value);
-                vertexTR.Position = Vector3.Transform(vertexTR.Position, transformMatrix.Value);
-                vertexBL.Position = Vector3.Transform(vertexBL.Position, transformMatrix.Value);
-                vertexBR.Position = Vector3.Transform(vertexBR.Position, transformMatrix.Value);
-            }
-        }
-
-        public void SetSourceRectCoordinates()
-        {
-            vertexTL.TextureCoordinate2.X = Math.Min(vertexTL.TextureCoordinate.X, vertexTR.TextureCoordinate.X);
-            vertexTL.TextureCoordinate2.Y = Math.Min(vertexTL.TextureCoordinate.Y, vertexBR.TextureCoordinate.Y);
-            vertexTL.TextureCoordinate3.X = Math.Max(vertexTL.TextureCoordinate.X, vertexTR.TextureCoordinate.X) - vertexTL.TextureCoordinate2.X;
-            vertexTL.TextureCoordinate3.Y = Math.Max(vertexTL.TextureCoordinate.Y, vertexBR.TextureCoordinate.Y) - vertexTL.TextureCoordinate2.Y;
-
-            vertexTR.TextureCoordinate2 = vertexTL.TextureCoordinate2;
-            vertexTR.TextureCoordinate3 = vertexTL.TextureCoordinate3;
-
-            vertexBL.TextureCoordinate2 = vertexTL.TextureCoordinate2;
-            vertexBL.TextureCoordinate3 = vertexTL.TextureCoordinate3;
-
-            vertexBR.TextureCoordinate2 = vertexTL.TextureCoordinate2;
-            vertexBR.TextureCoordinate3 = vertexTL.TextureCoordinate3;
         }
 
         #region Implement IComparable
