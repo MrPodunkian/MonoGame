@@ -13,6 +13,10 @@ namespace Microsoft.Xna.Framework.Audio
         private Queue<OALSoundBuffer> _queuedBuffers;
         private ALFormat _format;
 
+        // 1/27/2026: ARTHUR: Added a queue of sample start positions.
+        private int _lastQueuedBuffer; // When buffers are queued, stores the id of the added buffer.
+        private Dictionary<int, long> sampleStartPositions = new Dictionary<int, long>(); // A dictionary of buffer ids -> position within an audio file.
+
         private void PlatformCreate()
         {
             _format = _channels == AudioChannels.Mono ? ALFormat.Mono16 : ALFormat.Stereo16;
@@ -22,6 +26,7 @@ namespace Microsoft.Xna.Framework.Audio
             HasSourceId = true;
 
             _queuedBuffers = new Queue<OALSoundBuffer>();
+            sampleStartPositions = new Dictionary<int, long>();
         }
 
         private int PlatformGetPendingBufferCount()
@@ -68,6 +73,9 @@ namespace Microsoft.Xna.Framework.Audio
                 var buffer = _queuedBuffers.Dequeue();
                 buffer.Dispose();
             }
+
+            _lastQueuedBuffer = 0;
+            sampleStartPositions.Clear();
         }
 
         private void PlatformSubmitBuffer(byte[] buffer, int offset, int count)
@@ -100,6 +108,13 @@ namespace Microsoft.Xna.Framework.Audio
                 AL.SourcePlay(SourceId);
                 ALHelper.CheckError("Failed to resume source playback.");
             }
+
+            _lastQueuedBuffer = oalBuffer.OpenALDataBuffer;
+        }
+
+        public void SetPositionOfLastBuffer(long sample_position)
+        {
+            sampleStartPositions[_lastQueuedBuffer] = sample_position;
         }
 
         private void PlatformDispose(bool disposing)
@@ -135,11 +150,7 @@ namespace Microsoft.Xna.Framework.Audio
 
                 for (int i = 0; i < unqueued_buffers.Length; i++)
                 {
-                    int size = 0;
-                    AL.GetBufferi(unqueued_buffers[i], ALGetBufferi.Size, out size);
-
-                    // 2 bytes per sample
-                    _samplesPlayed += (uint)size / (int)AudioChannels.Stereo / 2;
+                    sampleStartPositions.Remove(unqueued_buffers[i]);
                 }
 
                 ALHelper.CheckError("Failed to unqueue buffers.");
@@ -155,16 +166,25 @@ namespace Microsoft.Xna.Framework.Audio
                 CheckBufferCount();
         }
 
-        // ARTHUR 5/16/2024: Track samples played
-        private uint _samplesPlayed;
-
         // ARTHUR 5/16/2024: Attempting position read.
-        public uint GetPlayedSamples()
+        public long GetPlayedSamples()
         {
-            int sample_position = 0;
-            AL.GetSource(SourceId, ALGetSourcei.SampleOffset, out sample_position);
+            int buffer_id = 0;
+            AL.GetSource(SourceId, ALGetSourcei.Buffer, out buffer_id);
 
-            return _samplesPlayed + (uint)sample_position;
+            ALHelper.CheckError("Failed to get current buffer.");
+
+            if (buffer_id != 0 && sampleStartPositions.TryGetValue(buffer_id, out var sample_start))
+            {
+                AL.GetSource(SourceId, ALGetSourcei.SampleOffset, out var sample_position);
+
+                ALHelper.CheckError("Failed to get buffer sample position.");
+
+                return sample_start + sample_position;
+
+            }
+
+            return -1;
         }
     }
 }
