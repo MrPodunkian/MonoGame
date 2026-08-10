@@ -286,15 +286,17 @@ namespace Microsoft.Xna.Framework
             Sdl.Rectangle displayRect;
             Sdl.Display.GetBounds(displayIndex, out displayRect);
 
-            var changeFullscreenType = _hardwareSwitch != _game.graphicsDeviceManager.HardwareModeSwitch && IsFullScreen;
+            // fullcreen mode needs to change
+            var fullScreenChanged = _willBeFullScreen != IsFullScreen;
+            var hardwareSwitchChanged = _hardwareSwitch != _game.graphicsDeviceManager.HardwareModeSwitch;
             _hardwareSwitch = _game.graphicsDeviceManager.HardwareModeSwitch;
 
-            // setting fullscreen to false before resizing if going windowed
-            if (!_willBeFullScreen && IsFullScreen)
+            // set fullscreen to windowed mode
+            if (!_willBeFullScreen && fullScreenChanged)
                 Sdl.Window.SetFullscreen(Handle, 0);
 
-            // setting fullscreen to desktop fullscreen or if hardware mode changed to false
-            if ((_willBeFullScreen && !IsFullScreen) || (changeFullscreenType && !_hardwareSwitch))
+            // set fullscreen to desktop fullscreen
+            if (_willBeFullScreen && !_hardwareSwitch && (fullScreenChanged || hardwareSwitchChanged))
                 Sdl.Window.SetFullscreen(Handle, Sdl.Window.State.FullscreenDesktop);
 
             // If going to exclusive full-screen mode, force the window to minimize on focus loss (Windows only)
@@ -303,7 +305,7 @@ namespace Microsoft.Xna.Framework
                 Sdl.SetHint("SDL_VIDEO_MINIMIZE_ON_FOCUS_LOSS", _willBeFullScreen && _hardwareSwitch ? "1" : "0");
             }
 
-            if (!_willBeFullScreen || _game.graphicsDeviceManager.HardwareModeSwitch)
+            if (!_willBeFullScreen || _hardwareSwitch)
             {
                 Sdl.Window.SetSize(Handle, clientWidth, clientHeight);
                 _width = clientWidth;
@@ -315,8 +317,8 @@ namespace Microsoft.Xna.Framework
                 _height = displayRect.Height;
             }
 
-            // setting fullscreen to hardware fulscreen after resizing if using hardware mode
-            if (((_willBeFullScreen && !IsFullScreen) || changeFullscreenType) && _hardwareSwitch)
+            // set fullscreen to hardware fullscreen
+            if (_willBeFullScreen && _hardwareSwitch  && (fullScreenChanged || hardwareSwitchChanged))
                 Sdl.Window.SetFullscreen(Handle, Sdl.Window.State.Fullscreen);
 
             int ignore, minx = 0, miny = 0;

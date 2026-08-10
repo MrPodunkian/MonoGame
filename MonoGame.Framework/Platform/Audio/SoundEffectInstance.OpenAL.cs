@@ -405,6 +405,10 @@ namespace Microsoft.Xna.Framework.Audio
             applyFilter = false;
         }
 
+        internal void PlatformClearBuffer()
+        {
+        }
+
         private void PlatformDispose(bool disposing)
         {
             FreeSource();
