@@ -2,7 +2,6 @@
 // This file is subject to the terms and conditions defined in
 // file 'LICENSE.txt', which is part of this source code package.
 
-using MonoGame.Interop;
 using System;
 using System.Collections.Generic;
 
@@ -324,11 +323,6 @@ namespace Microsoft.Xna.Framework.Audio
             }
 
             _buffersNeeded = 0;
-        }
-
-        public unsafe ulong GetPositionMilliseconds()
-        {
-            return MGA.Voice_GetPosition(Voice);
         }
 
         #endregion
